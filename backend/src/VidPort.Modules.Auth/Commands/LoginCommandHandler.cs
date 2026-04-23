@@ -23,17 +23,12 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponse>
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
 
         if (user == null || !_passwordHasher.VerifyPassword(request.Password, user.PasswordHash))
-        {
             throw new Exception("Invalid email or password");
-        }
 
         var accessToken = _tokenService.GenerateAccessToken(user);
         var refreshToken = _tokenService.GenerateRefreshToken();
 
-        user.RefreshToken = refreshToken;
-        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
-        user.LastLogin = DateTime.UtcNow;
-
+        user.RecordLogin(refreshToken, DateTime.UtcNow.AddDays(7));
         await _context.SaveChangesAsync(cancellationToken);
 
         return new AuthResponse(accessToken, refreshToken);

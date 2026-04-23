@@ -72,10 +72,10 @@ if (app.Environment.IsDevelopment())
 app.UseExceptionHandler(err => err.Run(async ctx =>
 {
     var feature = ctx.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>();
-    var message = feature?.Error.Message ?? "An unexpected error occurred.";
-    ctx.Response.StatusCode = 400;
+    var ex = feature?.Error;
     ctx.Response.ContentType = "application/json";
-    await ctx.Response.WriteAsJsonAsync(new { error = message });
+    ctx.Response.StatusCode = ex is VidPort.Core.Exceptions.DomainException ? 422 : 400;
+    await ctx.Response.WriteAsJsonAsync(new { error = ex?.Message ?? "An unexpected error occurred." });
 }));
 
 app.UseCors("AllowFrontend");

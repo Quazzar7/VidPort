@@ -20,10 +20,10 @@ public class UpdateVideoDurationCommandHandler : IRequestHandler<UpdateVideoDura
             .FirstOrDefaultAsync(v => v.Id == request.VideoId && v.DeletedAt == null, cancellationToken)
             ?? throw new Exception("Video not found");
 
-        if (video.Profile.UserId != request.UserId)
+        if (!video.OwnedBy(request.UserId))
             throw new Exception("Access denied");
 
-        video.DurationSeconds = request.DurationSeconds;
+        video.UpdateDuration(request.DurationSeconds);
         await _context.SaveChangesAsync(cancellationToken);
         return Unit.Value;
     }

@@ -26,13 +26,7 @@ public class ToggleVideoBookmarkCommandHandler : IRequestHandler<ToggleVideoBook
             return false;
         }
 
-        _context.Bookmarks.Add(new Bookmark
-        {
-            Id = Guid.NewGuid(),
-            ProfileId = request.ProfileId,
-            VideoId = request.VideoId,
-            CreatedAt = DateTime.UtcNow
-        });
+        _context.Bookmarks.Add(Bookmark.ForVideo(request.ProfileId, request.VideoId));
         await _context.SaveChangesAsync(cancellationToken);
         return true;
     }
@@ -49,9 +43,6 @@ public class ToggleProfileBookmarkCommandHandler : IRequestHandler<ToggleProfile
 
     public async Task<bool> Handle(ToggleProfileBookmarkCommand request, CancellationToken cancellationToken)
     {
-        if (request.ProfileId == request.TargetProfileId)
-            throw new Exception("Cannot bookmark your own profile");
-
         var existing = await _context.Bookmarks
             .FirstOrDefaultAsync(b => b.ProfileId == request.ProfileId && b.BookmarkedProfileId == request.TargetProfileId, cancellationToken);
 
@@ -62,13 +53,7 @@ public class ToggleProfileBookmarkCommandHandler : IRequestHandler<ToggleProfile
             return false;
         }
 
-        _context.Bookmarks.Add(new Bookmark
-        {
-            Id = Guid.NewGuid(),
-            ProfileId = request.ProfileId,
-            BookmarkedProfileId = request.TargetProfileId,
-            CreatedAt = DateTime.UtcNow
-        });
+        _context.Bookmarks.Add(Bookmark.ForProfile(request.ProfileId, request.TargetProfileId));
         await _context.SaveChangesAsync(cancellationToken);
         return true;
     }

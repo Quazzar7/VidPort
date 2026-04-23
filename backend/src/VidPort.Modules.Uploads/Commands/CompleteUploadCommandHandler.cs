@@ -1,7 +1,6 @@
 using Hangfire;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using VidPort.Core.Enums;
 using VidPort.Infrastructure.Data;
 using VidPort.Modules.Uploads.Jobs;
 
@@ -23,15 +22,9 @@ public class CompleteUploadCommandHandler : IRequestHandler<CompleteUploadComman
         var video = await _context.Videos.FindAsync(new object[] { request.VideoId }, cancellationToken)
             ?? throw new Exception("Video not found");
 
-        if (video.Status != VideoStatus.Pending)
-        {
-            throw new Exception("Video is already being processed or completed");
-        }
-
-        video.Status = VideoStatus.Processing;
+        video.MarkAsProcessing();
         await _context.SaveChangesAsync(cancellationToken);
 
-        // Enqueue background job
         _backgroundJobClient.Enqueue<IProcessVideoJob>(job => job.ExecuteAsync(video.Id, CancellationToken.None));
     }
 }

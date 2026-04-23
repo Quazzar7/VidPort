@@ -13,4 +13,11 @@ public class User
     public bool IsVerified { get; set; }
     public string? RefreshToken { get; set; }
     public DateTime? RefreshTokenExpiryTime { get; set; }
+
+    public void RecordLogin(string refreshToken, DateTime expiry)
+    {
+        RefreshToken = refreshToken;
+        RefreshTokenExpiryTime = expiry;
+        LastLogin = DateTime.UtcNow;
+    }
 }

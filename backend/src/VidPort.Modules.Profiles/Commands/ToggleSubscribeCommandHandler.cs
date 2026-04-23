@@ -16,9 +16,6 @@ public class ToggleSubscribeCommandHandler : IRequestHandler<ToggleSubscribeComm
 
     public async Task<bool> Handle(ToggleSubscribeCommand request, CancellationToken cancellationToken)
     {
-        if (request.SubscriberProfileId == request.CreatorProfileId)
-            throw new Exception("Cannot subscribe to yourself");
-
         var existing = await _context.Subscriptions
             .FirstOrDefaultAsync(s => s.SubscriberId == request.SubscriberProfileId && s.CreatorId == request.CreatorProfileId, cancellationToken);
 
@@ -29,12 +26,7 @@ public class ToggleSubscribeCommandHandler : IRequestHandler<ToggleSubscribeComm
             return false;
         }
 
-        _context.Subscriptions.Add(new Subscription
-        {
-            SubscriberId = request.SubscriberProfileId,
-            CreatorId = request.CreatorProfileId,
-            CreatedAt = DateTime.UtcNow
-        });
+        _context.Subscriptions.Add(Subscription.Create(request.SubscriberProfileId, request.CreatorProfileId));
         await _context.SaveChangesAsync(cancellationToken);
         return true;
     }

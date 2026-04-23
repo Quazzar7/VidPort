@@ -1,4 +1,5 @@
 using VidPort.Core.Enums;
+using VidPort.Core.Exceptions;
 
 namespace VidPort.Core.Entities;
 
@@ -17,4 +18,31 @@ public class Profile
     public Guid? FeaturedVideoId { get; set; }
     public string? PhoneNumber { get; set; }
     public ICollection<ProfileSkill> ProfileSkills { get; set; } = new List<ProfileSkill>();
+
+    public void SetFeaturedVideo(Video video)
+    {
+        if (video.ProfileId != Id)
+            throw new DomainException("Video does not belong to this profile");
+
+        if (!video.CanBeSetAsResume())
+            throw new DomainException(
+                video.Type != VideoType.Portfolio
+                    ? "Only Portfolio videos can be set as the resume video"
+                    : "Resume video must be 60 seconds or under");
+
+        FeaturedVideoId = video.Id;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void ClearFeaturedVideo()
+    {
+        FeaturedVideoId = null;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void ClearFeaturedVideoIfWas(Guid videoId)
+    {
+        if (FeaturedVideoId == videoId)
+            ClearFeaturedVideo();
+    }
 }
