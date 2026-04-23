@@ -23,13 +23,16 @@ public class S3Service : IS3Service
 
     public string GeneratePreSignedUploadUrl(string key, string contentType)
     {
+        var useHttp = _options.ServiceUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase);
+
         var request = new GetPreSignedUrlRequest
         {
             BucketName = _options.RawBucketName,
             Key = key,
             Verb = HttpVerb.PUT,
             Expires = DateTime.UtcNow.AddMinutes(15),
-            ContentType = contentType
+            ContentType = contentType,
+            Protocol = useHttp ? Protocol.HTTP : Protocol.HTTPS
         };
 
         return _s3Client.GetPreSignedURL(request);

@@ -13,4 +13,5 @@ public class Video
     public int? DurationSeconds { get; set; }
     public string? ThumbnailUrl { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? DeletedAt { get; set; }
 }

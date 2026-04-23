@@ -54,20 +54,24 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("logout")]
-    public async Task<IActionResult> Logout()
+    public IActionResult Logout()
     {
         Response.Cookies.Delete("refreshToken");
-        return Ok();
+        return NoContent();
     }
 
     private void SetRefreshTokenCookie(string refreshToken)
     {
+        var isDev = HttpContext.RequestServices
+            .GetRequiredService<IWebHostEnvironment>()
+            .IsDevelopment();
+
         var cookieOptions = new CookieOptions
         {
             HttpOnly = true,
             Expires = DateTime.UtcNow.AddDays(7),
-            SameSite = SameSiteMode.Strict,
-            Secure = true
+            SameSite = isDev ? SameSiteMode.Lax : SameSiteMode.Strict,
+            Secure = !isDev
         };
         Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
     }

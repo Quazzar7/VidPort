@@ -20,6 +20,16 @@ public class UploadsController : ControllerBase
     }
 
     [Authorize]
+    [HttpGet("my-videos")]
+    public async Task<IActionResult> GetMyVideos()
+    {
+        var userId = GetUserId();
+        var query = new GetMyVideosQuery(userId);
+        var videos = await _mediator.Send(query);
+        return Ok(videos);
+    }
+
+    [Authorize]
     [HttpPost("video-url")]
     public async Task<IActionResult> GetUploadUrl([FromBody] GetUploadUrlRequest request)
     {
@@ -34,6 +44,26 @@ public class UploadsController : ControllerBase
     public async Task<IActionResult> CompleteUpload(Guid videoId)
     {
         var command = new CompleteUploadCommand(videoId);
+        await _mediator.Send(command);
+        return NoContent();
+    }
+
+    [Authorize]
+    [HttpPatch("{videoId}/duration")]
+    public async Task<IActionResult> UpdateDuration(Guid videoId, [FromBody] UpdateDurationRequest request)
+    {
+        var userId = GetUserId();
+        var command = new UpdateVideoDurationCommand(videoId, userId, request.DurationSeconds);
+        await _mediator.Send(command);
+        return NoContent();
+    }
+
+    [Authorize]
+    [HttpDelete("{videoId}")]
+    public async Task<IActionResult> DeleteVideo(Guid videoId)
+    {
+        var userId = GetUserId();
+        var command = new DeleteVideoCommand(videoId, userId);
         await _mediator.Send(command);
         return NoContent();
     }
@@ -53,3 +83,4 @@ public class UploadsController : ControllerBase
 }
 
 public record GetUploadUrlRequest(VideoType Type, string ContentType);
+public record UpdateDurationRequest(int DurationSeconds);

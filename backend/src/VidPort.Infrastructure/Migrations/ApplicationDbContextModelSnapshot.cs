@@ -23,6 +23,35 @@ namespace VidPort.Infrastructure.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "vector");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("VidPort.Core.Entities.Bookmark", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("BookmarkedProfileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ProfileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("VideoId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookmarkedProfileId");
+
+                    b.HasIndex("ProfileId");
+
+                    b.HasIndex("VideoId");
+
+                    b.ToTable("Bookmarks");
+                });
+
             modelBuilder.Entity("VidPort.Core.Entities.Profile", b =>
                 {
                     b.Property<Guid>("Id")
@@ -39,11 +68,18 @@ namespace VidPort.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("FeaturedVideoId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Headline")
                         .HasColumnType("text");
 
                     b.Property<string>("Location")
                         .HasColumnType("text");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
 
                     b.Property<string>("Slug")
                         .IsRequired()
@@ -104,6 +140,24 @@ namespace VidPort.Infrastructure.Migrations
                     b.ToTable("Skills");
                 });
 
+            modelBuilder.Entity("VidPort.Core.Entities.Subscription", b =>
+                {
+                    b.Property<Guid>("SubscriberId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CreatorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("SubscriberId", "CreatorId");
+
+                    b.HasIndex("CreatorId");
+
+                    b.ToTable("Subscriptions");
+                });
+
             modelBuilder.Entity("VidPort.Core.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -155,6 +209,9 @@ namespace VidPort.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int?>("DurationSeconds")
                         .HasColumnType("integer");
 
@@ -181,6 +238,56 @@ namespace VidPort.Infrastructure.Migrations
                     b.HasIndex("ProfileId");
 
                     b.ToTable("Videos");
+                });
+
+            modelBuilder.Entity("VidPort.Core.Entities.VideoLike", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ProfileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("VideoId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProfileId");
+
+                    b.HasIndex("VideoId", "ProfileId")
+                        .IsUnique();
+
+                    b.ToTable("VideoLikes");
+                });
+
+            modelBuilder.Entity("VidPort.Core.Entities.Bookmark", b =>
+                {
+                    b.HasOne("VidPort.Core.Entities.Profile", "BookmarkedProfile")
+                        .WithMany()
+                        .HasForeignKey("BookmarkedProfileId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("VidPort.Core.Entities.Profile", "Profile")
+                        .WithMany()
+                        .HasForeignKey("ProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VidPort.Core.Entities.Video", "Video")
+                        .WithMany()
+                        .HasForeignKey("VideoId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("BookmarkedProfile");
+
+                    b.Navigation("Profile");
+
+                    b.Navigation("Video");
                 });
 
             modelBuilder.Entity("VidPort.Core.Entities.Profile", b =>
@@ -213,6 +320,25 @@ namespace VidPort.Infrastructure.Migrations
                     b.Navigation("Skill");
                 });
 
+            modelBuilder.Entity("VidPort.Core.Entities.Subscription", b =>
+                {
+                    b.HasOne("VidPort.Core.Entities.Profile", "Creator")
+                        .WithMany()
+                        .HasForeignKey("CreatorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("VidPort.Core.Entities.Profile", "Subscriber")
+                        .WithMany()
+                        .HasForeignKey("SubscriberId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Creator");
+
+                    b.Navigation("Subscriber");
+                });
+
             modelBuilder.Entity("VidPort.Core.Entities.Video", b =>
                 {
                     b.HasOne("VidPort.Core.Entities.Profile", "Profile")
@@ -222,6 +348,25 @@ namespace VidPort.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Profile");
+                });
+
+            modelBuilder.Entity("VidPort.Core.Entities.VideoLike", b =>
+                {
+                    b.HasOne("VidPort.Core.Entities.Profile", "Profile")
+                        .WithMany()
+                        .HasForeignKey("ProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VidPort.Core.Entities.Video", "Video")
+                        .WithMany()
+                        .HasForeignKey("VideoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Profile");
+
+                    b.Navigation("Video");
                 });
 
             modelBuilder.Entity("VidPort.Core.Entities.Profile", b =>

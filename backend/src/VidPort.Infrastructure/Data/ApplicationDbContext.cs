@@ -15,6 +15,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<Skill> Skills => Set<Skill>();
     public DbSet<ProfileSkill> ProfileSkills => Set<ProfileSkill>();
     public DbSet<Video> Videos => Set<Video>();
+    public DbSet<VideoLike> VideoLikes => Set<VideoLike>();
+    public DbSet<Subscription> Subscriptions => Set<Subscription>();
+    public DbSet<Bookmark> Bookmarks => Set<Bookmark>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -36,7 +39,8 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(e => e.Slug).IsUnique();
             entity.Property(e => e.Slug).IsRequired().HasMaxLength(100);
             entity.Property(e => e.AvailabilityStatus).HasConversion<string>();
-            
+            entity.Property(e => e.PhoneNumber).HasMaxLength(30);
+
             entity.HasOne(p => p.User)
                   .WithOne()
                   .HasForeignKey<Profile>(p => p.UserId)
@@ -74,6 +78,59 @@ public class ApplicationDbContext : DbContext
                   .WithMany()
                   .HasForeignKey(v => v.ProfileId)
                   .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<VideoLike>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => new { e.VideoId, e.ProfileId }).IsUnique();
+
+            entity.HasOne(l => l.Video)
+                  .WithMany()
+                  .HasForeignKey(l => l.VideoId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(l => l.Profile)
+                  .WithMany()
+                  .HasForeignKey(l => l.ProfileId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Subscription>(entity =>
+        {
+            entity.HasKey(s => new { s.SubscriberId, s.CreatorId });
+
+            entity.HasOne(s => s.Subscriber)
+                  .WithMany()
+                  .HasForeignKey(s => s.SubscriberId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(s => s.Creator)
+                  .WithMany()
+                  .HasForeignKey(s => s.CreatorId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Bookmark>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.HasOne(b => b.Profile)
+                  .WithMany()
+                  .HasForeignKey(b => b.ProfileId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(b => b.Video)
+                  .WithMany()
+                  .HasForeignKey(b => b.VideoId)
+                  .OnDelete(DeleteBehavior.Cascade)
+                  .IsRequired(false);
+
+            entity.HasOne(b => b.BookmarkedProfile)
+                  .WithMany()
+                  .HasForeignKey(b => b.BookmarkedProfileId)
+                  .OnDelete(DeleteBehavior.Restrict)
+                  .IsRequired(false);
         });
     }
 }

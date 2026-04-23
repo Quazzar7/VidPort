@@ -43,14 +43,21 @@ public class GetMyProfileQueryHandler : IRequestHandler<GetMyProfileQuery, Profi
             await _context.SaveChangesAsync(cancellationToken);
         }
 
+        var subscriberCount = await _context.Subscriptions
+            .CountAsync(s => s.CreatorId == profile.Id, cancellationToken);
+
         return new ProfileDto(
             profile.Id,
             profile.Slug,
             profile.Headline,
             profile.Bio,
             profile.Location,
+            profile.PhoneNumber,
             profile.AvailabilityStatus,
-            profile.ProfileSkills.Select(ps => ps.Skill.Name).ToList()
+            profile.ProfileSkills.Select(ps => ps.Skill.Name).ToList(),
+            profile.FeaturedVideoId,
+            subscriberCount,
+            false
         );
     }
 

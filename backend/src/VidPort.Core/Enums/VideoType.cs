@@ -2,6 +2,7 @@ namespace VidPort.Core.Enums;
 
 public enum VideoType
 {
-    Resume,
-    Project
+    Portfolio,
+    Project,
+    Other
 }

@@ -25,6 +25,7 @@ public class UpdateProfileCommandHandler : IRequestHandler<UpdateProfileCommand,
         profile.Headline = request.Headline;
         profile.Bio = request.Bio;
         profile.Location = request.Location;
+        profile.PhoneNumber = request.PhoneNumber;
         profile.AvailabilityStatus = request.AvailabilityStatus;
         profile.UpdatedAt = DateTime.UtcNow;
 

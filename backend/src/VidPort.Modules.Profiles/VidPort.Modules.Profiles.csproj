@@ -1,9 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\VidPort.Core\VidPort.Core.csproj" />
     <ProjectReference Include="..\VidPort.Shared\VidPort.Shared.csproj" />
     <ProjectReference Include="..\VidPort.Infrastructure\VidPort.Infrastructure.csproj" />
+    <ProjectReference Include="..\VidPort.Modules.Uploads\VidPort.Modules.Uploads.csproj" />
   </ItemGroup>
 
   <ItemGroup>

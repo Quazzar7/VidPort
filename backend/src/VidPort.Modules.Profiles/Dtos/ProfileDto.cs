@@ -8,6 +8,10 @@ public record ProfileDto(
     string? Headline,
     string? Bio,
     string? Location,
+    string? PhoneNumber,
     AvailabilityStatus AvailabilityStatus,
-    List<string> Skills
+    List<string> Skills,
+    Guid? FeaturedVideoId,
+    int SubscriberCount,
+    bool IsSubscribed
 );

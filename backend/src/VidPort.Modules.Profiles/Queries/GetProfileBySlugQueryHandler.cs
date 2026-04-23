@@ -22,14 +22,24 @@ public class GetProfileBySlugQueryHandler : IRequestHandler<GetProfileBySlugQuer
             .FirstOrDefaultAsync(p => p.Slug == request.Slug, cancellationToken)
             ?? throw new Exception("Profile not found");
 
+        var subscriberCount = await _context.Subscriptions
+            .CountAsync(s => s.CreatorId == profile.Id, cancellationToken);
+
+        var isSubscribed = request.ViewerProfileId.HasValue && await _context.Subscriptions
+            .AnyAsync(s => s.SubscriberId == request.ViewerProfileId.Value && s.CreatorId == profile.Id, cancellationToken);
+
         return new ProfileDto(
             profile.Id,
             profile.Slug,
             profile.Headline,
             profile.Bio,
             profile.Location,
+            profile.PhoneNumber,
             profile.AvailabilityStatus,
-            profile.ProfileSkills.Select(ps => ps.Skill.Name).ToList()
+            profile.ProfileSkills.Select(ps => ps.Skill.Name).ToList(),
+            profile.FeaturedVideoId,
+            subscriberCount,
+            isSubscribed
         );
     }
 }

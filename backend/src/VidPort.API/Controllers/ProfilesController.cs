@@ -38,9 +38,20 @@ public class ProfilesController : ControllerBase
             request.Headline,
             request.Bio,
             request.Location,
+            request.PhoneNumber,
             request.AvailabilityStatus,
             request.Skills
         );
+        await _mediator.Send(command);
+        return NoContent();
+    }
+
+    [Authorize]
+    [HttpPatch("me/featured-video")]
+    public async Task<IActionResult> SetFeaturedVideo([FromBody] SetFeaturedVideoRequest request)
+    {
+        var userId = GetUserId();
+        var command = new SetFeaturedVideoCommand(userId, request.VideoId);
         await _mediator.Send(command);
         return NoContent();
     }
@@ -53,15 +64,23 @@ public class ProfilesController : ControllerBase
         return Ok(profile);
     }
 
+    [Authorize]
+    [HttpGet("me/bookmarks")]
+    public async Task<IActionResult> GetMyBookmarks()
+    {
+        var userId = GetUserId();
+        var query = new GetMyBookmarksQuery(userId);
+        var bookmarks = await _mediator.Send(query);
+        return Ok(bookmarks);
+    }
+
     private Guid GetUserId()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                           ?? User.FindFirst("sub")?.Value;
-        
+
         if (string.IsNullOrEmpty(userIdClaim))
-        {
             throw new Exception("User ID not found in claims");
-        }
 
         return Guid.Parse(userIdClaim);
     }
@@ -71,6 +90,9 @@ public record UpdateProfileRequest(
     string? Headline,
     string? Bio,
     string? Location,
+    string? PhoneNumber,
     VidPort.Core.Enums.AvailabilityStatus AvailabilityStatus,
     List<string> Skills
 );
+
+public record SetFeaturedVideoRequest(Guid? VideoId);

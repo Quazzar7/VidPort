@@ -8,6 +8,7 @@ public record UpdateProfileCommand(
     string? Headline,
     string? Bio,
     string? Location,
+    string? PhoneNumber,
     AvailabilityStatus AvailabilityStatus,
     List<string> Skills
 ) : IRequest<Unit>;
