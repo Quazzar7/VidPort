@@ -1,0 +1,69 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{E037AFB4-118E-4C3F-81D7-A07DFB8584D9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VidPort.API", "src\VidPort.API\VidPort.API.csproj", "{8990C323-F4AA-4CD4-BAA6-27CCDD6551B8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VidPort.Core", "src\VidPort.Core\VidPort.Core.csproj", "{330389FC-4B8E-4DBD-8A56-8CA5D6C54D89}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VidPort.Infrastructure", "src\VidPort.Infrastructure\VidPort.Infrastructure.csproj", "{B82F6A09-12E7-413E-89CE-95568C3C95EB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VidPort.Shared", "src\VidPort.Shared\VidPort.Shared.csproj", "{72FE3AB6-74FF-4A1A-AADB-AC9E03E5C294}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VidPort.Modules.Auth", "src\VidPort.Modules.Auth\VidPort.Modules.Auth.csproj", "{DB31632A-3E51-4329-A1B2-F8BA3C5B66BE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VidPort.Modules.Profiles", "src\VidPort.Modules.Profiles\VidPort.Modules.Profiles.csproj", "{3A544D16-3A89-494F-B25B-3FD0284C0391}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VidPort.Modules.Uploads", "src\VidPort.Modules.Uploads\VidPort.Modules.Uploads.csproj", "{A979A691-D99F-4AFE-9F23-473DAADD66F6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8990C323-F4AA-4CD4-BAA6-27CCDD6551B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8990C323-F4AA-4CD4-BAA6-27CCDD6551B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8990C323-F4AA-4CD4-BAA6-27CCDD6551B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8990C323-F4AA-4CD4-BAA6-27CCDD6551B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{330389FC-4B8E-4DBD-8A56-8CA5D6C54D89}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{330389FC-4B8E-4DBD-8A56-8CA5D6C54D89}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{330389FC-4B8E-4DBD-8A56-8CA5D6C54D89}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{330389FC-4B8E-4DBD-8A56-8CA5D6C54D89}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B82F6A09-12E7-413E-89CE-95568C3C95EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B82F6A09-12E7-413E-89CE-95568C3C95EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B82F6A09-12E7-413E-89CE-95568C3C95EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B82F6A09-12E7-413E-89CE-95568C3C95EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72FE3AB6-74FF-4A1A-AADB-AC9E03E5C294}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72FE3AB6-74FF-4A1A-AADB-AC9E03E5C294}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72FE3AB6-74FF-4A1A-AADB-AC9E03E5C294}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72FE3AB6-74FF-4A1A-AADB-AC9E03E5C294}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DB31632A-3E51-4329-A1B2-F8BA3C5B66BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DB31632A-3E51-4329-A1B2-F8BA3C5B66BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DB31632A-3E51-4329-A1B2-F8BA3C5B66BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DB31632A-3E51-4329-A1B2-F8BA3C5B66BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A544D16-3A89-494F-B25B-3FD0284C0391}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A544D16-3A89-494F-B25B-3FD0284C0391}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A544D16-3A89-494F-B25B-3FD0284C0391}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A544D16-3A89-494F-B25B-3FD0284C0391}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A979A691-D99F-4AFE-9F23-473DAADD66F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A979A691-D99F-4AFE-9F23-473DAADD66F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A979A691-D99F-4AFE-9F23-473DAADD66F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A979A691-D99F-4AFE-9F23-473DAADD66F6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8990C323-F4AA-4CD4-BAA6-27CCDD6551B8} = {E037AFB4-118E-4C3F-81D7-A07DFB8584D9}
+		{330389FC-4B8E-4DBD-8A56-8CA5D6C54D89} = {E037AFB4-118E-4C3F-81D7-A07DFB8584D9}
+		{B82F6A09-12E7-413E-89CE-95568C3C95EB} = {E037AFB4-118E-4C3F-81D7-A07DFB8584D9}
+		{72FE3AB6-74FF-4A1A-AADB-AC9E03E5C294} = {E037AFB4-118E-4C3F-81D7-A07DFB8584D9}
+		{DB31632A-3E51-4329-A1B2-F8BA3C5B66BE} = {E037AFB4-118E-4C3F-81D7-A07DFB8584D9}
+		{3A544D16-3A89-494F-B25B-3FD0284C0391} = {E037AFB4-118E-4C3F-81D7-A07DFB8584D9}
+		{A979A691-D99F-4AFE-9F23-473DAADD66F6} = {E037AFB4-118E-4C3F-81D7-A07DFB8584D9}
+	EndGlobalSection
+EndGlobal

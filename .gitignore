@@ -1,0 +1,34 @@
+# .gitignore for VidPort (Full-Stack)
+
+# IDE / System
+.vscode/
+.vs/
+.idea/
+*.swp
+*.DS_Store
+.config/
+
+# Node.js / Next.js
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env*.local
+
+# .NET / C#
+**/bin/
+**/obj/
+*.user
+*.suo
+*.userosscache
+*.sln.doccache
+backend/.vs/
+
+# Docker
+docker-compose.override.yml
+postgres_data/
+redis_data/
+minio_data/
+
+# Local Temporary Files
+token.txt
+*.log
