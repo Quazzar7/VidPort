@@ -10,15 +10,16 @@ const CREATOR_NAV = [
   { href: '/upload', label: 'Upload' },
   { href: '/feed', label: 'Feed' },
   { href: '/feed/shorts', label: 'Shorts' },
+  { href: '/search', label: 'Search' },
 ];
 
 const RECRUITER_NAV = [
   { href: '/dashboard', label: 'Overview' },
   { href: '/profile', label: 'Profile' },
   { href: '/upload', label: 'Upload' },
-  { href: '/search', label: 'Search' },
   { href: '/feed', label: 'Feed' },
   { href: '/feed/shorts', label: 'Shorts' },
+  { href: '/search', label: 'Search' },
   { href: '/bookmarks', label: 'Bookmarks' },
 ];
 
@@ -39,7 +40,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <header className="border-b border-gray-800 bg-gray-900">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <span className="font-bold text-lg text-white">VidPort</span>
+            <Link href="/feed" className="font-bold text-lg text-white hover:text-indigo-400 transition-colors">VidPort</Link>
             <nav className="flex gap-1">
               {nav.map((item) => (
                 <Link

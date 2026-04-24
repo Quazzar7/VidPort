@@ -135,11 +135,19 @@ function FeedCard({ video, onLikeToggle, onBookmarkToggle, onSubscribeToggle }: 
   );
 }
 
+// VideoType enum: 0 = Portfolio/Resume, 1 = Project, 2 = Other
+const TYPE_FILTERS = [
+  { value: 0, label: 'Resume' },
+  { value: 1, label: 'Project' },
+  { value: 2, label: 'Other' },
+];
+
 export default function FeedPage() {
   const [videos, setVideos] = useState<FeedVideoDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [activeTypes, setActiveTypes] = useState<Set<number>>(new Set([0, 1, 2]));
 
   useEffect(() => {
     api.feed.getGeneral(1).then(v => {
@@ -147,6 +155,21 @@ export default function FeedPage() {
       setHasMore(v.length === 20);
     }).finally(() => setLoading(false));
   }, []);
+
+  function toggleType(value: number) {
+    setActiveTypes(prev => {
+      const next = new Set(prev);
+      if (next.has(value)) {
+        if (next.size === 1) return prev; // keep at least one active
+        next.delete(value);
+      } else {
+        next.add(value);
+      }
+      return next;
+    });
+  }
+
+  const filteredVideos = videos.filter(v => activeTypes.has(v.type));
 
   async function loadMore() {
     const nextPage = page + 1;
@@ -193,18 +216,38 @@ export default function FeedPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-white">Feed</h1>
+    <div className="space-y-5">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <h1 className="text-2xl font-bold text-white">Feed</h1>
 
-      {videos.length === 0 ? (
+        <div className="flex items-center gap-1 bg-gray-900 border border-gray-800 rounded-lg px-3 py-2">
+          {TYPE_FILTERS.map(f => (
+            <label key={f.value} className="flex items-center gap-1.5 cursor-pointer select-none px-2 py-0.5 rounded hover:bg-gray-800 transition-colors">
+              <input
+                type="checkbox"
+                checked={activeTypes.has(f.value)}
+                onChange={() => toggleType(f.value)}
+                className="w-3.5 h-3.5 rounded border-gray-600 bg-gray-700 accent-indigo-500 cursor-pointer"
+              />
+              <span className="text-sm text-gray-300">{f.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {loading ? null : filteredVideos.length === 0 ? (
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-12 text-center">
-          <p className="text-gray-500">No videos in the feed yet.</p>
-          <p className="text-gray-600 text-sm mt-1">Videos appear here once creators upload Project or Other videos.</p>
+          <p className="text-gray-500">
+            {videos.length === 0 ? 'No videos in the feed yet.' : 'No videos match the selected filters.'}
+          </p>
+          {videos.length === 0 && (
+            <p className="text-gray-600 text-sm mt-1">Videos appear here once creators upload and they are processed.</p>
+          )}
         </div>
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {videos.map(v => (
+            {filteredVideos.map(v => (
               <FeedCard
                 key={v.id}
                 video={v}
@@ -215,7 +258,7 @@ export default function FeedPage() {
             ))}
           </div>
 
-          {hasMore && (
+          {hasMore && activeTypes.size === 3 && (
             <div className="flex justify-center">
               <button
                 onClick={loadMore}
