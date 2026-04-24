@@ -14,10 +14,11 @@ public class GetJobRecommendationsQueryHandler : IRequestHandler<GetJobRecommend
     public GetJobRecommendationsQueryHandler(ApplicationDbContext db) => _db = db;
 
     public async Task<List<JobRecommendationDto>> Handle(GetJobRecommendationsQuery request, CancellationToken ct)
-        => await _db.RawJobs
-            .OrderByDescending(j => j.Source == "adzuna_in")
-            .ThenByDescending(j => j.PostedAt)
-            .Take(20)
+    {
+        var cutoff = DateTime.UtcNow.AddMonths(-2);
+        return await _db.RawJobs
+            .Where(j => j.PostedAt >= cutoff)
+            .OrderByDescending(j => j.PostedAt)
             .Select(j => new JobRecommendationDto(
                 j.Id,
                 j.Title,
@@ -27,4 +28,5 @@ public class GetJobRecommendationsQueryHandler : IRequestHandler<GetJobRecommend
                 j.Source,
                 j.PostedAt))
             .ToListAsync(ct);
+    }
 }

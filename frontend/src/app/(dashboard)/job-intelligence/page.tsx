@@ -37,7 +37,6 @@ function isIndiaJob(location?: string): boolean {
   return getLocationPriority(location) < 999;
 }
 
-const TWO_MONTHS_MS = 60 * 24 * 60 * 60 * 1000;
 
 const INSIGHT_TYPE_STYLES: Record<string, string> = {
   trend: 'border-indigo-500/40 bg-indigo-500/10 text-indigo-300',
@@ -99,14 +98,9 @@ export default function JobIntelligencePage() {
   const maxTrendCount = trends[0]?.jobCount ?? 1;
 
   const filteredJobs = useMemo(() => {
-    const now = Date.now();
     const q = jobSearch.trim().toLowerCase();
-
     return recs
       .filter(j => {
-        // 2-month recency filter
-        if (now - new Date(j.postedAt).getTime() > TWO_MONTHS_MS) return false;
-        // search filter
         if (!q) return true;
         return (
           j.title.toLowerCase().includes(q) ||
@@ -118,8 +112,8 @@ export default function JobIntelligencePage() {
       .sort((a, b) => {
         const pa = getLocationPriority(a.location);
         const pb = getLocationPriority(b.location);
-        if (pa !== pb) return pa - pb;                                       // priority first
-        return new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime(); // then newest
+        if (pa !== pb) return pa - pb;
+        return new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime();
       });
   }, [recs, jobSearch]);
 
