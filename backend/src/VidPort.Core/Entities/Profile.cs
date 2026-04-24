@@ -17,7 +17,11 @@ public class Profile
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public Guid? FeaturedVideoId { get; set; }
     public string? PhoneNumber { get; set; }
-    public ICollection<ProfileSkill> ProfileSkills { get; set; } = new List<ProfileSkill>();
+
+    public ICollection<ProfileSkill> ProfileSkills { get; set; } = [];
+    public ICollection<WorkExperience> WorkExperiences { get; set; } = [];
+    public ICollection<Education> Educations { get; set; } = [];
+    public ICollection<Project> Projects { get; set; } = [];
 
     public void SetFeaturedVideo(Video video)
     {

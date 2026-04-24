@@ -72,6 +72,24 @@ export const api = {
     getBySlug: (slug: string) => request<ProfileDto>(`/api/profiles/${slug}`),
 
     getMyBookmarks: () => request<BookmarkDto[]>('/api/profiles/me/bookmarks'),
+
+    upsertWorkExperience: (data: UpsertWorkExperienceRequest) =>
+      request<{ id: string }>('/api/profiles/me/work-experience', { method: 'POST', body: data }),
+
+    deleteWorkExperience: (id: string) =>
+      request<void>(`/api/profiles/me/work-experience/${id}`, { method: 'DELETE' }),
+
+    upsertEducation: (data: UpsertEducationRequest) =>
+      request<{ id: string }>('/api/profiles/me/education', { method: 'POST', body: data }),
+
+    deleteEducation: (id: string) =>
+      request<void>(`/api/profiles/me/education/${id}`, { method: 'DELETE' }),
+
+    upsertProject: (data: UpsertProjectRequest) =>
+      request<{ id: string }>('/api/profiles/me/projects', { method: 'POST', body: data }),
+
+    deleteProject: (id: string) =>
+      request<void>(`/api/profiles/me/projects/${id}`, { method: 'DELETE' }),
   },
 
   uploads: {
@@ -99,7 +117,13 @@ export const api = {
   },
 
   search: {
-    creators: (q: string) => request<CreatorSearchResultDto[]>(`/api/search/creators?q=${encodeURIComponent(q)}`),
+    creators: (q: string, filters?: SearchFilters) => {
+      const params = new URLSearchParams({ q });
+      if (filters?.availability != null) params.set('availability', String(filters.availability));
+      if (filters?.location) params.set('location', filters.location);
+      if (filters?.skill) params.set('skill', filters.skill);
+      return request<CreatorSearchResultDto[]>(`/api/search/creators?${params}`);
+    },
   },
 
   social: {
@@ -117,6 +141,50 @@ export const api = {
   },
 };
 
+// ── DTOs & Request Types ──────────────────────────────────────────────────────
+
+export interface SkillDto {
+  name: string;
+  stars: number | null;
+}
+
+export interface WorkExperienceDto {
+  id: string;
+  company: string;
+  role: string;
+  location: string | null;
+  startDate: string;
+  endDate: string | null;
+  isCurrent: boolean;
+  description: string | null;
+  sortOrder: number;
+}
+
+export interface EducationDto {
+  id: string;
+  institution: string;
+  degree: string | null;
+  fieldOfStudy: string | null;
+  startYear: number | null;
+  graduationYear: number | null;
+  grade: string | null;
+  description: string | null;
+  sortOrder: number;
+}
+
+export interface ProjectDto {
+  id: string;
+  name: string;
+  description: string | null;
+  url: string | null;
+  techStack: string[];
+  completionPercentage: number;
+  statusDescription: string | null;
+  videoId: string | null;
+  videoUrl: string | null;
+  sortOrder: number;
+}
+
 export interface ProfileDto {
   id: string;
   slug: string;
@@ -125,10 +193,13 @@ export interface ProfileDto {
   location: string | null;
   phoneNumber: string | null;
   availabilityStatus: number;
-  skills: string[];
+  skills: SkillDto[];
   featuredVideoId: string | null;
   subscriberCount: number;
   isSubscribed: boolean;
+  workExperiences: WorkExperienceDto[];
+  educations: EducationDto[];
+  projects: ProjectDto[];
 }
 
 export interface UpdateProfileRequest {
@@ -137,7 +208,40 @@ export interface UpdateProfileRequest {
   location: string | null;
   phoneNumber: string | null;
   availabilityStatus: number;
-  skills: string[];
+  skills: { name: string; stars: number | null }[];
+}
+
+export interface UpsertWorkExperienceRequest {
+  id?: string;
+  company: string;
+  role: string;
+  location?: string;
+  startDate: string;
+  endDate?: string | null;
+  isCurrent: boolean;
+  description?: string;
+}
+
+export interface UpsertEducationRequest {
+  id?: string;
+  institution: string;
+  degree?: string;
+  fieldOfStudy?: string;
+  startYear?: number | null;
+  graduationYear?: number | null;
+  grade?: string;
+  description?: string;
+}
+
+export interface UpsertProjectRequest {
+  id?: string;
+  name: string;
+  description?: string;
+  url?: string;
+  techStack: string[];
+  completionPercentage: number;
+  statusDescription?: string;
+  videoId?: string | null;
 }
 
 export interface VideoDto {
@@ -176,12 +280,19 @@ export interface CreatorSearchResultDto {
   profileId: string;
   slug: string;
   email: string;
-  phoneNumber: string | null;
   headline: string | null;
   location: string | null;
-  skills: string[];
+  availabilityStatus: number;
+  topSkills: SkillDto[];
+  currentRole: string | null;
   subscriberCount: number;
   isSubscribed: boolean;
+}
+
+export interface SearchFilters {
+  availability?: number;
+  location?: string;
+  skill?: string;
 }
 
 export interface BookmarkDto {
@@ -195,3 +306,9 @@ export interface BookmarkDto {
   bookmarkedProfileHeadline: string | null;
   createdAt: string;
 }
+
+export const AVAILABILITY_LABELS: Record<number, string> = {
+  0: 'Open to Work',
+  1: 'Open to Opportunities',
+  2: 'Not Available',
+};

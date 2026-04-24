@@ -1,13 +1,16 @@
+using VidPort.Core.Enums;
+
 namespace VidPort.Modules.Profiles.Dtos;
 
 public record CreatorSearchResultDto(
     Guid ProfileId,
     string Slug,
     string Email,
-    string? PhoneNumber,
     string? Headline,
     string? Location,
-    List<string> Skills,
+    AvailabilityStatus AvailabilityStatus,
+    List<SkillDto> TopSkills,
+    string? CurrentRole,
     int SubscriberCount,
     bool IsSubscribed
 );

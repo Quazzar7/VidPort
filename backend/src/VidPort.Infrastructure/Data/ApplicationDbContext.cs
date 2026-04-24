@@ -18,6 +18,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<VideoLike> VideoLikes => Set<VideoLike>();
     public DbSet<Subscription> Subscriptions => Set<Subscription>();
     public DbSet<Bookmark> Bookmarks => Set<Bookmark>();
+    public DbSet<WorkExperience> WorkExperiences => Set<WorkExperience>();
+    public DbSet<Education> Educations => Set<Education>();
+    public DbSet<Project> Projects => Set<Project>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -44,6 +47,21 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(p => p.User)
                   .WithOne()
                   .HasForeignKey<Profile>(p => p.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(p => p.WorkExperiences)
+                  .WithOne(w => w.Profile)
+                  .HasForeignKey(w => w.ProfileId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(p => p.Educations)
+                  .WithOne(e => e.Profile)
+                  .HasForeignKey(e => e.ProfileId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(p => p.Projects)
+                  .WithOne(p => p.Profile)
+                  .HasForeignKey(p => p.ProfileId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
 
@@ -130,6 +148,35 @@ public class ApplicationDbContext : DbContext
                   .WithMany()
                   .HasForeignKey(b => b.BookmarkedProfileId)
                   .OnDelete(DeleteBehavior.Restrict)
+                  .IsRequired(false);
+        });
+
+        modelBuilder.Entity<WorkExperience>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Company).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Role).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Location).HasMaxLength(200);
+        });
+
+        modelBuilder.Entity<Education>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Institution).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Degree).HasMaxLength(200);
+            entity.Property(e => e.FieldOfStudy).HasMaxLength(200);
+        });
+
+        modelBuilder.Entity<Project>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.TechStack).HasColumnType("text[]");
+
+            entity.HasOne(p => p.Video)
+                  .WithMany()
+                  .HasForeignKey(p => p.VideoId)
+                  .OnDelete(DeleteBehavior.SetNull)
                   .IsRequired(false);
         });
     }

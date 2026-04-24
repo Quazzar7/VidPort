@@ -1,8 +1,8 @@
 using System.Security.Claims;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using VidPort.Core.Enums;
 using VidPort.Infrastructure.Data;
 using VidPort.Modules.Profiles.Queries;
 
@@ -21,12 +21,15 @@ public class SearchController : ControllerBase
         _context = context;
     }
 
-    [Authorize]
     [HttpGet("creators")]
-    public async Task<IActionResult> SearchCreators([FromQuery] string q)
+    public async Task<IActionResult> SearchCreators(
+        [FromQuery] string? q,
+        [FromQuery] AvailabilityStatus? availability,
+        [FromQuery] string? location,
+        [FromQuery] string? skill)
     {
         var viewerProfileId = await TryGetViewerProfileId();
-        var query = new SearchCreatorsQuery(q ?? string.Empty, viewerProfileId);
+        var query = new SearchCreatorsQuery(q ?? string.Empty, viewerProfileId, availability, location, skill);
         var results = await _mediator.Send(query);
         return Ok(results);
     }

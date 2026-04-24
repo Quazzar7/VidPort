@@ -1,45 +1,30 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using VidPort.Infrastructure.Data;
 using VidPort.Modules.Profiles.Dtos;
+using VidPort.Modules.Uploads.Configuration;
 
 namespace VidPort.Modules.Profiles.Queries;
 
 public class GetProfileBySlugQueryHandler : IRequestHandler<GetProfileBySlugQuery, ProfileDto>
 {
     private readonly ApplicationDbContext _context;
+    private readonly S3Options _s3Options;
 
-    public GetProfileBySlugQueryHandler(ApplicationDbContext context)
+    public GetProfileBySlugQueryHandler(ApplicationDbContext context, IOptions<S3Options> s3Options)
     {
         _context = context;
+        _s3Options = s3Options.Value;
     }
 
     public async Task<ProfileDto> Handle(GetProfileBySlugQuery request, CancellationToken cancellationToken)
     {
-        var profile = await _context.Profiles
-            .Include(p => p.ProfileSkills)
-            .ThenInclude(ps => ps.Skill)
+        var profile = await ProfileMapper
+            .WithFullIncludes(_context.Profiles)
             .FirstOrDefaultAsync(p => p.Slug == request.Slug, cancellationToken)
             ?? throw new Exception("Profile not found");
 
-        var subscriberCount = await _context.Subscriptions
-            .CountAsync(s => s.CreatorId == profile.Id, cancellationToken);
-
-        var isSubscribed = request.ViewerProfileId.HasValue && await _context.Subscriptions
-            .AnyAsync(s => s.SubscriberId == request.ViewerProfileId.Value && s.CreatorId == profile.Id, cancellationToken);
-
-        return new ProfileDto(
-            profile.Id,
-            profile.Slug,
-            profile.Headline,
-            profile.Bio,
-            profile.Location,
-            profile.PhoneNumber,
-            profile.AvailabilityStatus,
-            profile.ProfileSkills.Select(ps => ps.Skill.Name).ToList(),
-            profile.FeaturedVideoId,
-            subscriberCount,
-            isSubscribed
-        );
+        return await ProfileMapper.ToDto(profile, _context, _s3Options, request.ViewerProfileId, cancellationToken);
     }
 }

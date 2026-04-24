@@ -29,53 +29,47 @@ public class UpdateProfileCommandHandler : IRequestHandler<UpdateProfileCommand,
         profile.AvailabilityStatus = request.AvailabilityStatus;
         profile.UpdatedAt = DateTime.UtcNow;
 
-        // Update Skills
         await UpdateSkillsAsync(profile, request.Skills, cancellationToken);
 
         await _context.SaveChangesAsync(cancellationToken);
-
         return Unit.Value;
     }
 
-    private async Task UpdateSkillsAsync(Profile profile, List<string> skillNames, CancellationToken cancellationToken)
+    private async Task UpdateSkillsAsync(Profile profile, List<SkillInput> inputs, CancellationToken ct)
     {
-        // 1. Fetch current skills from DB to ensure everything is tracked and loaded
-        var currentProfileSkills = await _context.ProfileSkills
+        var current = await _context.ProfileSkills
             .Include(ps => ps.Skill)
             .Where(ps => ps.ProfileId == profile.Id)
-            .ToListAsync(cancellationToken);
+            .ToListAsync(ct);
 
-        // 2. Remove skills no longer in the request
-        var skillsToRemove = currentProfileSkills
-            .Where(ps => !skillNames.Contains(ps.Skill.Name, StringComparer.OrdinalIgnoreCase))
-            .ToList();
+        var inputNames = inputs.Select(i => i.Name.Trim()).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var ps in skillsToRemove)
-        {
+        // Remove skills no longer present
+        foreach (var ps in current.Where(ps => !inputNames.Contains(ps.Skill.Name)))
             _context.ProfileSkills.Remove(ps);
-        }
 
-        // 3. Add new skills
-        foreach (var skillName in skillNames)
+        // Add or update remaining
+        foreach (var input in inputs)
         {
-            var isAlreadyAssociated = currentProfileSkills
-                .Any(ps => ps.Skill.Name.Equals(skillName, StringComparison.OrdinalIgnoreCase));
+            var existing = current.FirstOrDefault(ps => ps.Skill.Name.Equals(input.Name, StringComparison.OrdinalIgnoreCase));
 
-            if (!isAlreadyAssociated)
+            if (existing != null)
             {
-                var skill = await _context.Skills
-                    .FirstOrDefaultAsync(s => s.Name.ToLower() == skillName.ToLower(), cancellationToken);
+                existing.Stars = input.Stars;
+            }
+            else
+            {
+                var skill = await _context.Skills.FirstOrDefaultAsync(s => s.Name.ToLower() == input.Name.ToLower(), ct)
+                    ?? new Skill { Id = Guid.NewGuid(), Name = input.Name.Trim() };
 
-                if (skill == null)
-                {
-                    skill = new Skill { Id = Guid.NewGuid(), Name = skillName };
+                if (skill.Id == Guid.Empty || !await _context.Skills.AnyAsync(s => s.Id == skill.Id, ct))
                     _context.Skills.Add(skill);
-                }
 
                 _context.ProfileSkills.Add(new ProfileSkill
                 {
                     ProfileId = profile.Id,
-                    SkillId = skill.Id
+                    SkillId = skill.Id,
+                    Stars = input.Stars
                 });
             }
         }

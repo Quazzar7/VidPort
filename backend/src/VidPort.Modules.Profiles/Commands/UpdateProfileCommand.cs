@@ -3,6 +3,8 @@ using VidPort.Core.Enums;
 
 namespace VidPort.Modules.Profiles.Commands;
 
+public record SkillInput(string Name, int? Stars);
+
 public record UpdateProfileCommand(
     Guid UserId,
     string? Headline,
@@ -10,5 +12,5 @@ public record UpdateProfileCommand(
     string? Location,
     string? PhoneNumber,
     AvailabilityStatus AvailabilityStatus,
-    List<string> Skills
+    List<SkillInput> Skills
 ) : IRequest<Unit>;
