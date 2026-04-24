@@ -21,6 +21,12 @@ public class ApplicationDbContext : DbContext
     public DbSet<WorkExperience> WorkExperiences => Set<WorkExperience>();
     public DbSet<Education> Educations => Set<Education>();
     public DbSet<Project> Projects => Set<Project>();
+    public DbSet<CommunicationThread> CommunicationThreads => Set<CommunicationThread>();
+    public DbSet<CommunicationMessage> CommunicationMessages => Set<CommunicationMessage>();
+    public DbSet<BlockedSlot> BlockedSlots => Set<BlockedSlot>();
+    public DbSet<RawJob> RawJobs => Set<RawJob>();
+    public DbSet<SkillAggregate> SkillAggregates => Set<SkillAggregate>();
+    public DbSet<JobInsight> JobInsights => Set<JobInsight>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -62,6 +68,51 @@ public class ApplicationDbContext : DbContext
             entity.HasMany(p => p.Projects)
                   .WithOne(p => p.Profile)
                   .HasForeignKey(p => p.ProfileId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(p => p.FeaturedVideo)
+                  .WithMany()
+                  .HasForeignKey(p => p.FeaturedVideoId)
+                  .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<CommunicationThread>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.HasOne(e => e.InitiatorProfile)
+                  .WithMany()
+                  .HasForeignKey(e => e.InitiatorProfileId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.RecipientProfile)
+                  .WithMany()
+                  .HasForeignKey(e => e.RecipientProfileId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<CommunicationMessage>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Type).HasConversion<string>();
+
+            entity.HasOne(e => e.Thread)
+                  .WithMany(t => t.Messages)
+                  .HasForeignKey(e => e.ThreadId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.SenderProfile)
+                  .WithMany()
+                  .HasForeignKey(e => e.SenderProfileId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<BlockedSlot>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasOne(e => e.Profile)
+                  .WithMany()
+                  .HasForeignKey(e => e.ProfileId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
 
@@ -178,6 +229,52 @@ public class ApplicationDbContext : DbContext
                   .HasForeignKey(p => p.VideoId)
                   .OnDelete(DeleteBehavior.SetNull)
                   .IsRequired(false);
+        });
+
+        modelBuilder.Entity<RawJob>(entity =>
+        {
+            entity.ToTable("raw_jobs");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.ExternalId).HasColumnName("external_id").IsRequired().HasMaxLength(500);
+            entity.Property(e => e.Source).HasColumnName("source").IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Title).HasColumnName("title").IsRequired().HasMaxLength(500);
+            entity.Property(e => e.Company).HasColumnName("company").IsRequired().HasMaxLength(300);
+            entity.Property(e => e.Location).HasColumnName("location");
+            entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.Skills).HasColumnName("skills").HasColumnType("text[]");
+            entity.Property(e => e.SalaryMin).HasColumnName("salary_min");
+            entity.Property(e => e.SalaryMax).HasColumnName("salary_max");
+            entity.Property(e => e.PostedAt).HasColumnName("posted_at");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+            entity.Property(e => e.IsProcessed).HasColumnName("is_processed");
+            entity.HasIndex(e => new { e.ExternalId, e.Source }).IsUnique();
+        });
+
+        modelBuilder.Entity<SkillAggregate>(entity =>
+        {
+            entity.ToTable("skill_aggregates");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.SkillName).HasColumnName("skill_name").IsRequired().HasMaxLength(100);
+            entity.Property(e => e.JobCount).HasColumnName("job_count");
+            entity.Property(e => e.WeekOverWeekChange).HasColumnName("week_over_week_change");
+            entity.Property(e => e.PeriodStart).HasColumnName("period_start");
+            entity.Property(e => e.PeriodEnd).HasColumnName("period_end");
+            entity.Property(e => e.ComputedAt).HasColumnName("computed_at");
+            entity.HasIndex(e => new { e.SkillName, e.PeriodStart }).IsUnique();
+        });
+
+        modelBuilder.Entity<JobInsight>(entity =>
+        {
+            entity.ToTable("job_insights");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Type).HasColumnName("type").IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Title).HasColumnName("title").IsRequired().HasMaxLength(300);
+            entity.Property(e => e.Body).HasColumnName("body").IsRequired();
+            entity.Property(e => e.GeneratedAt).HasColumnName("generated_at");
+            entity.Property(e => e.IsActive).HasColumnName("is_active");
         });
     }
 }

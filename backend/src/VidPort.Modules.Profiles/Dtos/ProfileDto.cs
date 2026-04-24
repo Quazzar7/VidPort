@@ -51,6 +51,7 @@ public record ProfileDto(
     AvailabilityStatus AvailabilityStatus,
     List<SkillDto> Skills,
     Guid? FeaturedVideoId,
+    string? FeaturedVideoUrl,
     int SubscriberCount,
     bool IsSubscribed,
     UserRole Role,

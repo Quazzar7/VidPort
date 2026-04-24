@@ -105,187 +105,144 @@ export default function DashboardPage() {
   const projects = profile?.projects ?? [];
 
   return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white">Overview</h1>
-        <Link href="/profile" className="text-sm bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg transition-colors">
+    <div className="h-[calc(100vh-120px)] flex flex-col gap-4 overflow-hidden">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 flex-shrink-0">
+        <div>
+          <h1 className="text-2xl font-black text-white tracking-tight">
+            Welcome, <span className="text-indigo-400">{profile?.headline?.split(' ')[0] ?? 'User'}</span>
+          </h1>
+        </div>
+        <Link href="/profile" className="text-[10px] font-black uppercase tracking-widest bg-white text-black hover:bg-gray-200 px-4 py-2 rounded-xl transition-all shadow-lg">
           Edit Profile
         </Link>
       </div>
 
-      {/* Top row: About + Resume Video */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-3">
-          <h2 className="font-semibold text-white text-sm">About</h2>
-          {profile ? (
-            <>
-              {profile.headline && <p className="text-indigo-300 font-medium">{profile.headline}</p>}
-              {currentJob && <p className="text-gray-400 text-sm">{currentJob.role} at {currentJob.company}</p>}
-              {profile.bio && <p className="text-gray-500 text-sm leading-relaxed line-clamp-3">{profile.bio}</p>}
-              {profile.location && <p className="text-gray-600 text-xs">{profile.location}</p>}
-              <span className={`inline-block text-xs border rounded-full px-3 py-1 ${AVAILABILITY_COLORS[profile.availabilityStatus]}`}>
-                {AVAILABILITY_LABELS[profile.availabilityStatus]}
-              </span>
-              <p className="text-gray-600 text-xs">{profile.subscriberCount} subscriber{profile.subscriberCount !== 1 ? 's' : ''}</p>
-            </>
-          ) : (
-            <div className="space-y-2">
-              <p className="text-gray-500 text-sm">No profile yet.</p>
-              <Link href="/profile" className="inline-block text-sm bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg transition-colors">
-                Set up profile
-              </Link>
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-4 min-h-0">
+        {/* Left Column: About & Skills (3/12) */}
+        <div className="md:col-span-3 flex flex-col gap-4 min-h-0">
+          <div className="bg-gray-900 border border-gray-800/60 rounded-2xl p-4 space-y-3 overflow-hidden">
+            <h2 className="text-xs font-black uppercase tracking-widest text-gray-500 flex items-center gap-2">
+              <span className="w-1 h-3 bg-indigo-500 rounded-full" />
+              About
+            </h2>
+            {profile ? (
+              <div className="space-y-2">
+                <p className="text-sm font-bold text-white line-clamp-1">{profile.headline}</p>
+                <p className="text-gray-500 text-xs leading-relaxed line-clamp-3">{profile.bio}</p>
+                <div className="flex flex-wrap gap-1 pt-1">
+                  <span className={`text-[8px] font-black uppercase tracking-tighter border rounded-lg px-2 py-0.5 ${AVAILABILITY_COLORS[profile.availabilityStatus]}`}>
+                    {AVAILABILITY_LABELS[profile.availabilityStatus]}
+                  </span>
+                </div>
+              </div>
+            ) : <p className="text-gray-600 text-xs italic">Set up your profile</p>}
+          </div>
+
+          <div className="flex-1 bg-gray-900 border border-gray-800/60 rounded-2xl p-4 flex flex-col min-h-0">
+            <div className="flex items-center justify-between mb-3 flex-shrink-0">
+              <h2 className="text-xs font-black uppercase tracking-widest text-gray-500 flex items-center gap-2">
+                <span className="w-1 h-3 bg-yellow-500 rounded-full" />
+                Skills
+              </h2>
             </div>
-          )}
+            <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar space-y-1.5">
+              {skills.map((s, i) => (
+                <div key={s.name ?? i} className="flex items-center gap-2 bg-gray-800/30 p-1.5 rounded-lg border border-gray-800/50">
+                  <span className="text-gray-300 text-[11px] font-bold truncate flex-1">{s.name}</span>
+                  <Stars value={s.stars} />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-white text-sm">{videoSectionTitle}</h2>
-            <Link href="/upload" className="text-xs bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded-lg transition-colors">+ Upload</Link>
-          </div>
-          {featuredVideo ? (
-            <>
-              <VideoPreviewCard video={featuredVideo} allVideos={resumeVideos} />
-              {resumeVideos.length > 1 && (
-                <Link href="/profile" className="text-xs text-indigo-400 hover:text-indigo-300">
-                  {resumeVideos.length - 1} other video{resumeVideos.length > 2 ? 's' : ''} — manage in Profile
-                </Link>
-              )}
-            </>
-          ) : (
-            <div className="aspect-video bg-gray-800 rounded-lg flex items-center justify-center">
-              <p className="text-gray-600 text-sm">{emptyVideoMessage}</p>
+        {/* Center Column: Video & Experience (6/12) */}
+        <div className="md:col-span-6 flex flex-col gap-4 min-h-0">
+          <div className="bg-gray-900 border border-gray-800/60 rounded-2xl p-4 flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-xs font-black uppercase tracking-widest text-gray-500 flex items-center gap-2">
+                <span className="w-1 h-3 bg-purple-500 rounded-full" />
+                {videoSectionTitle}
+              </h2>
+              <Link href="/upload" className="text-[9px] font-black uppercase tracking-widest bg-gray-800 hover:bg-gray-700 text-white px-2 py-1 rounded-lg border border-gray-700">+ Upload</Link>
             </div>
-          )}
+            <div className="relative aspect-video w-full max-w-xl mx-auto rounded-xl overflow-hidden shadow-2xl border border-gray-800">
+              {featuredVideo ? (
+                <VideoPreviewCard video={featuredVideo} allVideos={resumeVideos} />
+              ) : (
+                <div className="w-full h-full bg-gray-800/50 flex items-center justify-center border border-dashed border-gray-700 rounded-xl">
+                  <p className="text-gray-600 text-xs font-medium">{emptyVideoMessage}</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex-1 bg-gray-900 border border-gray-800/60 rounded-2xl p-4 flex flex-col min-h-0">
+            <h2 className="text-xs font-black uppercase tracking-widest text-gray-500 flex items-center gap-2 mb-3 flex-shrink-0">
+              <span className="w-1 h-3 bg-green-500 rounded-full" />
+              Work Experience
+            </h2>
+            <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar space-y-2">
+              {workExperiences.map((w, i) => (
+                <div key={w.id ?? i} className="flex items-start gap-3 p-2 rounded-xl border border-gray-800/50 hover:bg-gray-800/30 transition-all">
+                  <div className="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center text-indigo-400 text-xs flex-shrink-0 font-black border border-gray-700">
+                    {w.company[0]}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start gap-2">
+                      <p className="text-white text-xs font-black truncate">{w.role}</p>
+                      <span className="text-[8px] font-black uppercase tracking-tighter text-gray-500 whitespace-nowrap">{w.startDate} - {w.isCurrent ? 'Now' : w.endDate}</span>
+                    </div>
+                    <p className="text-gray-400 text-[10px] font-bold">{w.company}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Projects & Education (3/12) */}
+        <div className="md:col-span-3 flex flex-col gap-4 min-h-0">
+          <div className="flex-1 bg-gray-900 border border-gray-800/60 rounded-2xl p-4 flex flex-col min-h-0">
+            <h2 className="text-xs font-black uppercase tracking-widest text-gray-500 flex items-center gap-2 mb-3 flex-shrink-0">
+              <span className="w-1 h-3 bg-pink-500 rounded-full" />
+              Projects
+            </h2>
+            <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar space-y-3">
+              {projects.map((p, i) => (
+                <div key={p.id ?? i} className="space-y-1.5 p-2 rounded-xl border border-gray-800/50 bg-gray-800/20">
+                  <p className="text-white text-[11px] font-black truncate">{p.name}</p>
+                  <div className="flex-1 bg-gray-800 rounded-full h-1 overflow-hidden">
+                    <div className="bg-gradient-to-r from-indigo-500 to-purple-500 h-full rounded-full" style={{ width: `${p.completionPercentage}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-gray-900 border border-gray-800/60 rounded-2xl p-4 flex flex-col min-h-0 max-h-[200px]">
+            <h2 className="text-xs font-black uppercase tracking-widest text-gray-500 flex items-center gap-2 mb-3 flex-shrink-0">
+              <span className="w-1 h-3 bg-blue-500 rounded-full" />
+              Education
+            </h2>
+            <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar space-y-2">
+              {educations.map((e, i) => (
+                <div key={e.id ?? i} className="min-w-0">
+                  <p className="text-white text-[10px] font-black truncate">{e.institution}</p>
+                  <p className="text-gray-500 text-[9px] truncate">{e.degree}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Skills snapshot */}
-      {skills.length > 0 && (
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold text-white text-sm">Skills</h2>
-            <Link href="/profile" className="text-xs text-gray-500 hover:text-indigo-400 transition-colors">Edit</Link>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-2">
-            {skills.slice(0, 9).map((s, i) => (
-              <div key={s.name ?? i} className="flex items-center gap-2 min-w-0">
-                <span className="text-gray-300 text-sm truncate flex-1">{s.name}</span>
-                <Stars value={s.stars} />
-              </div>
-            ))}
-          </div>
-          {skills.length > 9 && (
-            <p className="text-gray-600 text-xs mt-2">+{skills.length - 9} more</p>
-          )}
-        </div>
-      )}
-
-      {/* Work Experience snapshot */}
-      {workExperiences.length > 0 && (
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold text-white text-sm">Work Experience</h2>
-            <Link href="/profile" className="text-xs text-gray-500 hover:text-indigo-400 transition-colors">Manage</Link>
-          </div>
-          <div className="space-y-3">
-            {workExperiences.slice(0, 3).map((w, i) => (
-              <div key={w.id ?? i} className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center text-gray-500 text-xs flex-shrink-0 font-bold">
-                  {w.company[0]}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-white text-sm font-medium">{w.role}</p>
-                  <p className="text-gray-400 text-xs">{w.company}{w.location ? ` · ${w.location}` : ''}</p>
-                  <p className="text-gray-600 text-xs">{w.startDate} – {w.isCurrent ? 'Present' : (w.endDate ?? '')}</p>
-                </div>
-                {w.isCurrent && (
-                  <span className="text-[10px] bg-green-900/40 text-green-400 border border-green-800 px-2 py-0.5 rounded-full flex-shrink-0">Current</span>
-                )}
-              </div>
-            ))}
-            {workExperiences.length > 3 && (
-              <p className="text-gray-600 text-xs">+{workExperiences.length - 3} more</p>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Education snapshot */}
-      {educations.length > 0 && (
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold text-white text-sm">Education</h2>
-            <Link href="/profile" className="text-xs text-gray-500 hover:text-indigo-400 transition-colors">Manage</Link>
-          </div>
-          <div className="space-y-3">
-            {educations.slice(0, 3).map((e, i) => (
-              <div key={e.id ?? i} className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center text-gray-500 text-xs flex-shrink-0 font-bold">
-                  {e.institution[0]}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-white text-sm font-medium">{e.institution}</p>
-                  {(e.degree || e.fieldOfStudy) && (
-                    <p className="text-gray-400 text-xs">{[e.degree, e.fieldOfStudy].filter(Boolean).join(' · ')}</p>
-                  )}
-                  <p className="text-gray-600 text-xs">
-                    {[e.startYear, e.graduationYear].filter(Boolean).join(' – ')}
-                    {e.grade ? ` · ${e.grade}` : ''}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Projects snapshot */}
-      {projects.length > 0 && (
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold text-white text-sm">Projects</h2>
-            <Link href="/profile" className="text-xs text-gray-500 hover:text-indigo-400 transition-colors">Manage</Link>
-          </div>
-          <div className="space-y-4">
-            {projects.slice(0, 3).map((p, i) => (
-              <div key={p.id ?? i} className="space-y-1.5">
-                <div className="flex items-center gap-2">
-                  <p className="text-white text-sm font-medium">{p.name}</p>
-                  {p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" className="text-indigo-400 text-xs hover:text-indigo-300">↗</a>}
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 bg-gray-800 rounded-full h-1.5 overflow-hidden">
-                    <div className="bg-indigo-500 h-full" style={{ width: `${p.completionPercentage}%` }} />
-                  </div>
-                  <span className="text-xs text-gray-500">{p.completionPercentage}%</span>
-                </div>
-                {(p.techStack ?? []).length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {p.techStack.slice(0, 5).map((t, ti) => (
-                      <span key={t ?? ti} className="bg-gray-800 text-gray-500 text-[11px] px-2 py-0.5 rounded-full">{t}</span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-            {projects.length > 3 && (
-              <p className="text-gray-600 text-xs">+{projects.length - 3} more</p>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Empty state for new users */}
-      {profile && skills.length === 0 && workExperiences.length === 0 && educations.length === 0 && projects.length === 0 && (
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-8 text-center space-y-3">
-          <p className="text-gray-400 font-medium">Your profile is empty</p>
-          <p className="text-gray-600 text-sm">Add skills, work experience, education and projects to stand out to recruiters.</p>
-          <Link href="/profile" className="inline-block text-sm bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg transition-colors">
-            Build your profile
-          </Link>
-        </div>
-      )}
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
+      `}</style>
     </div>
   );
 }

@@ -25,6 +25,7 @@
     <ProjectReference Include="..\VidPort.Modules.Auth\VidPort.Modules.Auth.csproj" />
     <ProjectReference Include="..\VidPort.Modules.Profiles\VidPort.Modules.Profiles.csproj" />
     <ProjectReference Include="..\VidPort.Modules.Uploads\VidPort.Modules.Uploads.csproj" />
+    <ProjectReference Include="..\VidPort.Modules.Communications\VidPort.Modules.Communications.csproj" />
   </ItemGroup>
 
 </Project>

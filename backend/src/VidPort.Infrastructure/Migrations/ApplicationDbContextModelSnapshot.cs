@@ -24,6 +24,34 @@ namespace VidPort.Infrastructure.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "vector");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("VidPort.Core.Entities.BlockedSlot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("EndTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ProfileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProfileId");
+
+                    b.ToTable("BlockedSlots");
+                });
+
             modelBuilder.Entity("VidPort.Core.Entities.Bookmark", b =>
                 {
                     b.Property<Guid>("Id")
@@ -51,6 +79,77 @@ namespace VidPort.Infrastructure.Migrations
                     b.HasIndex("VideoId");
 
                     b.ToTable("Bookmarks");
+                });
+
+            modelBuilder.Entity("VidPort.Core.Entities.CommunicationMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("DurationMinutes")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("MeetingLink")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("ScheduledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("SenderProfileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ThreadId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SenderProfileId");
+
+                    b.HasIndex("ThreadId");
+
+                    b.ToTable("CommunicationMessages");
+                });
+
+            modelBuilder.Entity("VidPort.Core.Entities.CommunicationThread", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("InitiatorProfileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("RecipientProfileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InitiatorProfileId");
+
+                    b.HasIndex("RecipientProfileId");
+
+                    b.ToTable("CommunicationThreads");
                 });
 
             modelBuilder.Entity("VidPort.Core.Entities.Education", b =>
@@ -138,6 +237,8 @@ namespace VidPort.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("FeaturedVideoId");
 
                     b.HasIndex("Slug")
                         .IsUnique();
@@ -403,6 +504,17 @@ namespace VidPort.Infrastructure.Migrations
                     b.ToTable("WorkExperiences");
                 });
 
+            modelBuilder.Entity("VidPort.Core.Entities.BlockedSlot", b =>
+                {
+                    b.HasOne("VidPort.Core.Entities.Profile", "Profile")
+                        .WithMany()
+                        .HasForeignKey("ProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Profile");
+                });
+
             modelBuilder.Entity("VidPort.Core.Entities.Bookmark", b =>
                 {
                     b.HasOne("VidPort.Core.Entities.Profile", "BookmarkedProfile")
@@ -428,6 +540,44 @@ namespace VidPort.Infrastructure.Migrations
                     b.Navigation("Video");
                 });
 
+            modelBuilder.Entity("VidPort.Core.Entities.CommunicationMessage", b =>
+                {
+                    b.HasOne("VidPort.Core.Entities.Profile", "SenderProfile")
+                        .WithMany()
+                        .HasForeignKey("SenderProfileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("VidPort.Core.Entities.CommunicationThread", "Thread")
+                        .WithMany("Messages")
+                        .HasForeignKey("ThreadId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SenderProfile");
+
+                    b.Navigation("Thread");
+                });
+
+            modelBuilder.Entity("VidPort.Core.Entities.CommunicationThread", b =>
+                {
+                    b.HasOne("VidPort.Core.Entities.Profile", "InitiatorProfile")
+                        .WithMany()
+                        .HasForeignKey("InitiatorProfileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("VidPort.Core.Entities.Profile", "RecipientProfile")
+                        .WithMany()
+                        .HasForeignKey("RecipientProfileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("InitiatorProfile");
+
+                    b.Navigation("RecipientProfile");
+                });
+
             modelBuilder.Entity("VidPort.Core.Entities.Education", b =>
                 {
                     b.HasOne("VidPort.Core.Entities.Profile", "Profile")
@@ -441,11 +591,18 @@ namespace VidPort.Infrastructure.Migrations
 
             modelBuilder.Entity("VidPort.Core.Entities.Profile", b =>
                 {
+                    b.HasOne("VidPort.Core.Entities.Video", "FeaturedVideo")
+                        .WithMany()
+                        .HasForeignKey("FeaturedVideoId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("VidPort.Core.Entities.User", "User")
                         .WithOne()
                         .HasForeignKey("VidPort.Core.Entities.Profile", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("FeaturedVideo");
 
                     b.Navigation("User");
                 });
@@ -545,6 +702,11 @@ namespace VidPort.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Profile");
+                });
+
+            modelBuilder.Entity("VidPort.Core.Entities.CommunicationThread", b =>
+                {
+                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("VidPort.Core.Entities.Profile", b =>

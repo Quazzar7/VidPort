@@ -10,6 +10,7 @@
     COPY ["src/VidPort.Modules.Auth/VidPort.Modules.Auth.csproj", "src/VidPort.Modules.Auth/"]
     COPY ["src/VidPort.Modules.Profiles/VidPort.Modules.Profiles.csproj", "src/VidPort.Modules.Profiles/"]
     COPY ["src/VidPort.Modules.Uploads/VidPort.Modules.Uploads.csproj", "src/VidPort.Modules.Uploads/"]
+    COPY ["src/VidPort.Modules.Communications/VidPort.Modules.Communications.csproj", "src/VidPort.Modules.Communications/"]
     COPY ["src/VidPort.Shared/VidPort.Shared.csproj", "src/VidPort.Shared/"]
     
     RUN dotnet restore

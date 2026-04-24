@@ -51,6 +51,7 @@ public static class ProfileMapper
         return new ProfileDto(
             profile.Id, profile.Slug, profile.Headline, profile.Bio, profile.Location,
             profile.PhoneNumber, profile.AvailabilityStatus, skills, profile.FeaturedVideoId,
+            profile.FeaturedVideoId.HasValue ? $"{baseUrl}/{bucket}/{profile.FeaturedVideo?.S3Key}" : null,
             subscriberCount, isSubscribed, profile.User.Role, workExperiences, educations, projects
         );
     }
@@ -58,6 +59,7 @@ public static class ProfileMapper
     public static IQueryable<Profile> WithFullIncludes(IQueryable<Profile> query) =>
         query
             .Include(p => p.User)
+            .Include(p => p.FeaturedVideo)
             .Include(p => p.ProfileSkills).ThenInclude(ps => ps.Skill)
             .Include(p => p.WorkExperiences)
             .Include(p => p.Educations)

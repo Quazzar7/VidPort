@@ -143,9 +143,93 @@ export const api = {
 
     getSubscriptions: () => request<SubscribedCreatorDto[]>('/api/social/subscriptions'),
   },
+
+  jobs: {
+    getInsights: () => request<JobInsightDto[]>('/api/jobs/insights'),
+    getTrends: () => request<JobTrendDto[]>('/api/jobs/trends'),
+    getRecommendations: () => request<JobRecommendationDto[]>('/api/jobs/recommendations'),
+  },
+
+  communications: {
+    getThreads: () => request<CommunicationThreadDto[]>('/api/communications/threads'),
+    
+    getMessages: (threadId: string) => 
+      request<CommunicationMessageDto[]>(`/api/communications/threads/${threadId}/messages`),
+
+    getSchedule: () => request<CommunicationMessageDto[]>('/api/communications/schedule'),
+
+    getBlockedSlots: () => request<BlockedSlotDto[]>('/api/communications/blocked-slots'),
+
+    createBlockedSlot: (startTime: string, endTime: string, reason?: string) =>
+      request<BlockedSlotDto>('/api/communications/blocked-slots', {
+        method: 'POST',
+        body: { startTime, endTime, reason }
+      }),
+
+    deleteBlockedSlot: (id: string) =>
+      request<void>(`/api/communications/blocked-slots/${id}`, { method: 'DELETE' }),
+    
+    initiate: (recipientProfileId: string, type: number, content: string, scheduledAt?: string, durationMinutes?: number, meetingLink?: string) =>
+      request<CommunicationThreadDto>('/api/communications/initiate', {
+        method: 'POST',
+        body: { recipientProfileId, type, content, scheduledAt, durationMinutes, meetingLink }
+      }),
+    
+    sendMessage: (threadId: string, type: number, content: string, scheduledAt?: string, durationMinutes?: number, meetingLink?: string) =>
+      request<CommunicationMessageDto>(`/api/communications/threads/${threadId}/messages`, {
+        method: 'POST',
+        body: { type, content, scheduledAt, durationMinutes, meetingLink }
+      }),
+
+    updateMessage: (messageId: string, content: string, scheduledAt?: string, durationMinutes?: number, meetingLink?: string) =>
+      request<CommunicationMessageDto>(`/api/communications/messages/${messageId}`, {
+        method: 'PUT',
+        body: { content, scheduledAt, durationMinutes, meetingLink }
+      }),
+  },
 };
 
 // ── DTOs & Request Types ──────────────────────────────────────────────────────
+
+export enum CommunicationType {
+  Chat = 0,
+  Email = 1,
+  SMS = 2,
+  WhatsApp = 3,
+  Call = 4,
+  Meeting = 5,
+  Interview = 6
+}
+
+export interface CommunicationMessageDto {
+  id: string;
+  threadId: string;
+  senderProfileId: string;
+  senderHeadline: string;
+  type: CommunicationType;
+  content: string;
+  scheduledAt: string | null;
+  durationMinutes: number | null;
+  meetingLink: string | null;
+  createdAt: string;
+  isRead: boolean;
+}
+
+export interface BlockedSlotDto {
+  id: string;
+  startTime: string;
+  endTime: string;
+  reason: string | null;
+}
+
+export interface CommunicationThreadDto {
+  id: string;
+  otherProfileId: string;
+  otherHeadline: string;
+  otherSlug: string;
+  updatedAt: string;
+  lastMessage: CommunicationMessageDto | null;
+}
 
 export interface SkillDto {
   name: string;
@@ -199,6 +283,7 @@ export interface ProfileDto {
   availabilityStatus: number;
   skills: SkillDto[];
   featuredVideoId: string | null;
+  featuredVideoUrl: string | null;
   subscriberCount: number;
   isSubscribed: boolean;
   role: number;
@@ -319,6 +404,32 @@ export interface SubscribedCreatorDto {
   location: string | null;
   subscriberCount: number;
   subscribedAt: string;
+}
+
+// ── Job Intelligence ─────────────────────────────────────────────────────────
+
+export interface JobInsightDto {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  generatedAt: string;
+}
+
+export interface JobTrendDto {
+  skill: string;
+  jobCount: number;
+  weekOverWeekChange: number;
+}
+
+export interface JobRecommendationDto {
+  id: string;
+  title: string;
+  company: string;
+  location?: string;
+  skills?: string[];
+  source: string;
+  postedAt: string;
 }
 
 export const AVAILABILITY_LABELS: Record<number, string> = {

@@ -9,6 +9,7 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   isLoading: boolean;
   role: UserRole | null;
+  email: string | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   register: (email: string, password: string, role: number) => Promise<string>;
@@ -16,13 +17,17 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-function decodeRole(token: string): UserRole | null {
+function decodeToken(token: string) {
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
     const roleKey = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
-    return (payload[roleKey] ?? payload['role']) as UserRole | null;
+    const emailKey = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress';
+    return {
+      role: (payload[roleKey] ?? payload['role']) as UserRole | null,
+      email: (payload[emailKey] ?? payload['email'] ?? payload['sub']) as string | null
+    };
   } catch {
-    return null;
+    return { role: null, email: null };
   }
 }
 
@@ -30,18 +35,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [role, setRole] = useState<UserRole | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
 
   const restoreSession = useCallback(async () => {
     try {
       const { accessToken } = await api.auth.refresh();
       setAccessToken(accessToken);
       setIsAuthenticated(true);
-      setRole(decodeRole(accessToken));
+      const decoded = decodeToken(accessToken);
+      setRole(decoded.role);
+      setEmail(decoded.email);
       document.cookie = 'vid_logged_in=1; path=/; max-age=604800; samesite=strict';
     } catch {
       setAccessToken(null);
       setIsAuthenticated(false);
       setRole(null);
+      setEmail(null);
       document.cookie = 'vid_logged_in=; path=/; max-age=0';
     } finally {
       setIsLoading(false);
@@ -56,7 +65,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { accessToken } = await api.auth.login(email, password);
     setAccessToken(accessToken);
     setIsAuthenticated(true);
-    setRole(decodeRole(accessToken));
+    const decoded = decodeToken(accessToken);
+    setRole(decoded.role);
+    setEmail(decoded.email);
     document.cookie = 'vid_logged_in=1; path=/; max-age=604800; samesite=strict';
   }, []);
 
@@ -65,6 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setAccessToken(null);
     setIsAuthenticated(false);
     setRole(null);
+    setEmail(null);
     document.cookie = 'vid_logged_in=; path=/; max-age=0';
   }, []);
 
@@ -74,7 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isLoading, role, login, logout, register }}>
+    <AuthContext.Provider value={{ isAuthenticated, isLoading, role, email, login, logout, register }}>
       {children}
     </AuthContext.Provider>
   );

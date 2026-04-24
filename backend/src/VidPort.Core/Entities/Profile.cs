@@ -16,6 +16,7 @@ public class Profile
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public Guid? FeaturedVideoId { get; set; }
+    public Video? FeaturedVideo { get; set; }
     public string? PhoneNumber { get; set; }
 
     public ICollection<ProfileSkill> ProfileSkills { get; set; } = [];

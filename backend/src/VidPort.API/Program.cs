@@ -8,6 +8,8 @@ using VidPort.Infrastructure.Data;
 using VidPort.Modules.Auth;
 using VidPort.Modules.Profiles;
 using VidPort.Modules.Uploads;
+using VidPort.Modules.Communications;
+using VidPort.Modules.JobIntelligence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +30,8 @@ builder.Services.AddHangfireServer();
 builder.Services.AddAuthModule(builder.Configuration);
 builder.Services.AddProfilesModule();
 builder.Services.AddUploadsModule(builder.Configuration);
+builder.Services.AddCommunicationsModule();
+builder.Services.AddJobIntelligenceModule();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

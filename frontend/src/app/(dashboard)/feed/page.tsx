@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { api, FeedVideoDto } from '@/lib/api';
 import VideoModal from '@/components/VideoModal';
 
@@ -41,7 +42,7 @@ function FeedCard({ video, onClick, onLikeToggle, onBookmarkToggle, onSubscribeT
   }
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden group/card">
+    <div className="bg-gray-900/40 border border-gray-800/60 rounded-2xl overflow-hidden group/card hover:border-indigo-500/30 transition-all duration-300">
       {/* video thumbnail */}
       <div
         className="relative aspect-video bg-black cursor-pointer overflow-hidden"
@@ -55,41 +56,44 @@ function FeedCard({ video, onClick, onLikeToggle, onBookmarkToggle, onSubscribeT
           muted
           playsInline
           preload="metadata"
-          className="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-105"
+          className="w-full h-full object-cover transition-transform duration-700 group-hover/card:scale-110"
         />
-        <div className={`absolute inset-0 flex items-center justify-center transition-colors duration-300 ${hovered ? 'bg-black/10' : 'bg-black/40'}`}>
+        <div className={`absolute inset-0 flex items-center justify-center transition-all duration-500 ${hovered ? 'bg-black/20 backdrop-blur-[2px]' : 'bg-black/40'}`}>
           {!hovered && (
-            <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur flex items-center justify-center border border-white/30 transform transition-transform group-hover/card:scale-110">
-              <svg className="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+            <div className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 transform transition-all duration-300 group-hover/card:scale-110 group-hover/card:bg-white/20">
+              <svg className="w-6 h-6 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
               </svg>
             </div>
           )}
         </div>
         {video.durationSeconds && (
-          <span className="absolute bottom-2 right-2 text-[10px] bg-black/70 text-white px-2 py-1 rounded-md font-mono backdrop-blur border border-white/10">
+          <span className="absolute bottom-3 right-3 text-[10px] bg-black/80 text-white px-2 py-1 rounded-lg font-mono backdrop-blur-md border border-white/10">
             {fmtDuration(video.durationSeconds)}
           </span>
         )}
-        <span className="absolute top-2 left-2 text-[10px] bg-indigo-600/90 text-white px-2 py-1 rounded-md font-semibold tracking-wide shadow-lg">
+        <span className="absolute top-3 left-3 text-[10px] bg-indigo-600 shadow-lg shadow-indigo-900/40 text-white px-2.5 py-1 rounded-lg font-bold tracking-wider uppercase">
           {VIDEO_TYPE_LABELS[video.type] ?? 'Video'}
         </span>
       </div>
 
       {/* info + actions */}
-      <div className="p-4 space-y-4 bg-gradient-to-b from-gray-900 to-black">
+      <div className="p-5 space-y-4 bg-gradient-to-b from-gray-900/50 to-gray-950">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-white text-sm font-semibold truncate hover:text-indigo-400 cursor-pointer transition-colors">
+            <Link 
+              href={`/profiles/${video.creatorSlug}`}
+              className="block text-white text-base font-bold truncate hover:text-indigo-400 transition-colors"
+            >
               {video.creatorHeadline ?? video.creatorSlug}
-            </p>
-            <p className="text-gray-500 text-[10px] font-medium mt-0.5">{formatDate(video.createdAt)}</p>
+            </Link>
+            <p className="text-gray-500 text-[11px] font-medium mt-1 uppercase tracking-tight">{formatDate(video.createdAt)}</p>
           </div>
           <button
             onClick={() => onSubscribeToggle(video.creatorProfileId)}
-            className={`text-[10px] px-3 py-1.5 rounded-full border font-bold transition-all flex-shrink-0 ${
+            className={`text-[10px] px-4 py-2 rounded-xl border font-black uppercase tracking-widest transition-all flex-shrink-0 ${
               video.isSubscribedToCreator
-                ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-900/20'
+                ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-900/40'
                 : 'border-gray-700 text-gray-400 hover:border-indigo-500 hover:text-indigo-400 hover:bg-indigo-500/5'
             }`}
           >
@@ -97,7 +101,7 @@ function FeedCard({ video, onClick, onLikeToggle, onBookmarkToggle, onSubscribeT
           </button>
         </div>
 
-        <div className="flex items-center gap-5 pt-1">
+        <div className="flex items-center gap-6 pt-1 border-t border-gray-800/50">
           <button
             onClick={() => onLikeToggle(video.id)}
             className={`flex items-center gap-2 text-xs font-medium transition-all transform hover:scale-105 ${
@@ -248,7 +252,7 @@ export default function FeedPage() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {filteredVideos.map((v, idx) => (
               <FeedCard
                 key={v.id}
