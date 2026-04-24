@@ -3,17 +3,41 @@
 import { useEffect, useState, useMemo } from 'react';
 import { api, JobInsightDto, JobTrendDto, JobRecommendationDto } from '@/lib/api';
 
-const INDIA_KEYWORDS = [
-  'india', 'bengaluru', 'bangalore', 'mumbai', 'delhi', 'new delhi',
-  'hyderabad', 'chennai', 'pune', 'kolkata', 'noida', 'gurgaon', 'gurugram',
-  'ahmedabad', 'jaipur', 'kochi', 'coimbatore', 'indore',
-];
+// Returns a sort priority (lower = shown first). 999 = non-India / unknown.
+function getLocationPriority(location?: string): number {
+  if (!location) return 999;
+  const loc = location.toLowerCase();
+
+  const has = (...words: string[]) => words.some(w => loc.includes(w));
+
+  if (has('kochi', 'cochin', 'ernakulam'))                                    return 1;
+  if (has('thiruvananthapuram', 'trivandrum'))                                 return 2;
+  if (has('kerala', 'kozhikode', 'calicut', 'thrissur', 'malappuram',
+           'kannur', 'kollam', 'palakkad', 'kottayam', 'alappuzha',
+           'kasaragod', 'pathanamthitta', 'idukki', 'wayanad'))               return 3;
+  if (has('bengaluru', 'bangalore', 'karnataka', 'mysuru', 'mysore',
+           'mangaluru', 'mangalore', 'hubli'))                                 return 4;
+  if (has('chennai', 'tamil nadu', 'tamilnadu', 'coimbatore', 'madurai',
+           'trichy', 'tiruchirappalli', 'salem'))                              return 5;
+  if (has('hyderabad', 'secunderabad', 'andhra', 'telangana', 'telengana',
+           'visakhapatnam', 'vizag', 'vijayawada', 'warangal'))               return 6;
+  if (has('mumbai', 'navi mumbai', 'thane', 'maharashtra'))                   return 7;
+  if (has('pune'))                                                             return 8;
+  if (has('kolkata', 'calcutta', 'west bengal'))                              return 9;
+  if (has('delhi', 'new delhi', 'noida', 'gurgaon', 'gurugram',
+           'faridabad', 'ncr', 'greater noida'))                              return 10;
+  if (has('ahmedabad', 'gujarat', 'surat', 'vadodara'))                       return 11;
+  if (has('india', 'jaipur', 'indore', 'nagpur', 'bhopal', 'lucknow',
+           'chandigarh', 'goa', 'bhubaneswar', 'kochi'))                      return 12;
+
+  return 999;
+}
 
 function isIndiaJob(location?: string): boolean {
-  if (!location) return false;
-  const loc = location.toLowerCase();
-  return INDIA_KEYWORDS.some(k => loc.includes(k));
+  return getLocationPriority(location) < 999;
 }
+
+const TWO_MONTHS_MS = 60 * 24 * 60 * 60 * 1000;
 
 const INSIGHT_TYPE_STYLES: Record<string, string> = {
   trend: 'border-indigo-500/40 bg-indigo-500/10 text-indigo-300',
@@ -75,21 +99,28 @@ export default function JobIntelligencePage() {
   const maxTrendCount = trends[0]?.jobCount ?? 1;
 
   const filteredJobs = useMemo(() => {
+    const now = Date.now();
     const q = jobSearch.trim().toLowerCase();
-    const filtered = q
-      ? recs.filter(j =>
+
+    return recs
+      .filter(j => {
+        // 2-month recency filter
+        if (now - new Date(j.postedAt).getTime() > TWO_MONTHS_MS) return false;
+        // search filter
+        if (!q) return true;
+        return (
           j.title.toLowerCase().includes(q) ||
           j.company.toLowerCase().includes(q) ||
           (j.location ?? '').toLowerCase().includes(q) ||
           (j.skills ?? []).some(s => s.toLowerCase().includes(q))
-        )
-      : recs;
-
-    const india = filtered.filter(j => isIndiaJob(j.location));
-    const rest  = filtered.filter(j => !isIndiaJob(j.location));
-    const byDate = (a: JobRecommendationDto, b: JobRecommendationDto) =>
-      new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime();
-    return [...india.sort(byDate), ...rest.sort(byDate)];
+        );
+      })
+      .sort((a, b) => {
+        const pa = getLocationPriority(a.location);
+        const pb = getLocationPriority(b.location);
+        if (pa !== pb) return pa - pb;                                       // priority first
+        return new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime(); // then newest
+      });
   }, [recs, jobSearch]);
 
   if (loading) {
@@ -181,6 +212,9 @@ export default function JobIntelligencePage() {
               <h2 className="text-xs font-black uppercase tracking-widest text-gray-500">
                 Recent Jobs Tracked
               </h2>
+              <span className="text-[10px] font-bold text-gray-600 bg-gray-800/80 px-2 py-0.5 rounded-full border border-gray-700">
+                last 2 months
+              </span>
               {recs.length > 0 && (
                 <span className="text-[10px] font-bold text-gray-600 bg-gray-800 px-2 py-0.5 rounded-full">
                   {filteredJobs.length} / {recs.length}
