@@ -71,20 +71,7 @@ export default function JobIntelligencePage() {
     })();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-full text-red-400 text-sm">{error}</div>
-    );
-  }
-
+  // All hooks must run before any early returns
   const maxTrendCount = trends[0]?.jobCount ?? 1;
 
   const filteredJobs = useMemo(() => {
@@ -98,13 +85,26 @@ export default function JobIntelligencePage() {
         )
       : recs;
 
-    // India jobs first, then rest — both groups newest-first
     const india = filtered.filter(j => isIndiaJob(j.location));
     const rest  = filtered.filter(j => !isIndiaJob(j.location));
     const byDate = (a: JobRecommendationDto, b: JobRecommendationDto) =>
       new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime();
     return [...india.sort(byDate), ...rest.sort(byDate)];
   }, [recs, jobSearch]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-full text-red-400 text-sm">{error}</div>
+    );
+  }
 
   return (
     <div className="h-full overflow-y-auto">
