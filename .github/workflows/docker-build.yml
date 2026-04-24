@@ -25,6 +25,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Lowercase repository owner
+        run: |
+          echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >>${GITHUB_ENV}
+
       - name: Build and push Backend image
         uses: docker/build-push-action@v5
         with:
@@ -32,8 +36,8 @@ jobs:
           file: ./backend/Dockerfile
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/vidport-backend:latest
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/vidport-backend:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.OWNER_LC }}/vidport-backend:latest
+            ${{ env.REGISTRY }}/${{ env.OWNER_LC }}/vidport-backend:${{ github.sha }}
 
       - name: Build and push Frontend image
         uses: docker/build-push-action@v5
@@ -42,8 +46,8 @@ jobs:
           file: ./frontend/Dockerfile
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/vidport-frontend:latest
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/vidport-frontend:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.OWNER_LC }}/vidport-frontend:latest
+            ${{ env.REGISTRY }}/${{ env.OWNER_LC }}/vidport-frontend:${{ github.sha }}
 
       - name: Build and push Scraper image
         uses: docker/build-push-action@v5
@@ -52,8 +56,8 @@ jobs:
           file: ./services/scraper/Dockerfile
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/vidport-scraper:latest
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/vidport-scraper:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.OWNER_LC }}/vidport-scraper:latest
+            ${{ env.REGISTRY }}/${{ env.OWNER_LC }}/vidport-scraper:${{ github.sha }}
 
       - name: Build and push Processor image
         uses: docker/build-push-action@v5
@@ -62,8 +66,8 @@ jobs:
           file: ./services/processor/Dockerfile
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/vidport-processor:latest
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/vidport-processor:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.OWNER_LC }}/vidport-processor:latest
+            ${{ env.REGISTRY }}/${{ env.OWNER_LC }}/vidport-processor:${{ github.sha }}
 
       - name: Build and push Insight Generator image
         uses: docker/build-push-action@v5
@@ -72,5 +76,5 @@ jobs:
           file: ./services/insight-generator/Dockerfile
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/vidport-insight-generator:latest
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/vidport-insight-generator:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.OWNER_LC }}/vidport-insight-generator:latest
+            ${{ env.REGISTRY }}/${{ env.OWNER_LC }}/vidport-insight-generator:${{ github.sha }}
