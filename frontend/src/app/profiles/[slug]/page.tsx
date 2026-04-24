@@ -100,7 +100,7 @@ export default function PublicProfilePage() {
     );
   }
 
-  const currentJob = profile.workExperiences.find(w => w.isCurrent);
+  const currentJob = (profile.workExperiences ?? []).find(w => w.isCurrent);
 
   return (
     <div className="min-h-screen bg-gray-950">
@@ -175,11 +175,11 @@ export default function PublicProfilePage() {
           </div>
 
           {/* Skills */}
-          {profile.skills.length > 0 && (
+          {(profile.skills ?? []).length > 0 && (
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
               <h2 className="font-semibold text-white mb-3">Skills</h2>
               <div className="space-y-2">
-                {profile.skills.map(s => (
+                {(profile.skills ?? []).map(s => (
                   <div key={s.name} className="flex items-center gap-3">
                     <span className="text-gray-300 text-sm flex-1">{s.name}</span>
                     <Stars value={s.stars} />
@@ -191,9 +191,9 @@ export default function PublicProfilePage() {
         </div>
 
         {/* Work Experience */}
-        {profile.workExperiences.length > 0 && (
+        {(profile.workExperiences ?? []).length > 0 && (
           <Section title="Work Experience">
-            {profile.workExperiences.map(w => (
+            {(profile.workExperiences ?? []).map(w => (
               <div key={w.id} className="border border-gray-800 rounded-lg p-4 space-y-1">
                 <p className="text-white font-medium text-sm">{w.role}</p>
                 <p className="text-gray-400 text-sm">{w.company}{w.location ? ` · ${w.location}` : ''}</p>
@@ -205,9 +205,9 @@ export default function PublicProfilePage() {
         )}
 
         {/* Education */}
-        {profile.educations.length > 0 && (
+        {(profile.educations ?? []).length > 0 && (
           <Section title="Education">
-            {profile.educations.map(e => (
+            {(profile.educations ?? []).map(e => (
               <div key={e.id} className="border border-gray-800 rounded-lg p-4 space-y-1">
                 <p className="text-white font-medium text-sm">{e.institution}</p>
                 {(e.degree || e.fieldOfStudy) && (
@@ -224,9 +224,9 @@ export default function PublicProfilePage() {
         )}
 
         {/* Projects */}
-        {profile.projects.length > 0 && (
+        {(profile.projects ?? []).length > 0 && (
           <Section title="Projects">
-            {profile.projects.map(p => (
+            {(profile.projects ?? []).map(p => (
               <div key={p.id} className="border border-gray-800 rounded-lg p-4 space-y-2">
                 <div className="flex items-start gap-2">
                   <div className="flex-1 min-w-0">

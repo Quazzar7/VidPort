@@ -82,6 +82,10 @@ export default function DashboardPage() {
 
   const currentJob = profile?.workExperiences?.find(w => w.isCurrent);
   const pastJobs = profile?.workExperiences?.filter(w => !w.isCurrent).slice(0, 2) ?? [];
+  const skills = profile?.skills ?? [];
+  const workExperiences = profile?.workExperiences ?? [];
+  const educations = profile?.educations ?? [];
+  const projects = profile?.projects ?? [];
 
   return (
     <div className="space-y-5">
@@ -140,28 +144,28 @@ export default function DashboardPage() {
       </div>
 
       {/* Skills snapshot */}
-      {profile && profile.skills.length > 0 && (
+      {skills.length > 0 && (
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-semibold text-white text-sm">Skills</h2>
             <Link href="/profile" className="text-xs text-gray-500 hover:text-indigo-400 transition-colors">Edit</Link>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-2">
-            {profile.skills.slice(0, 9).map(s => (
+            {skills.slice(0, 9).map(s => (
               <div key={s.name} className="flex items-center gap-2 min-w-0">
                 <span className="text-gray-300 text-sm truncate flex-1">{s.name}</span>
                 <Stars value={s.stars} />
               </div>
             ))}
           </div>
-          {profile.skills.length > 9 && (
-            <p className="text-gray-600 text-xs mt-2">+{profile.skills.length - 9} more</p>
+          {skills.length > 9 && (
+            <p className="text-gray-600 text-xs mt-2">+{skills.length - 9} more</p>
           )}
         </div>
       )}
 
       {/* Work Experience snapshot */}
-      {profile && (profile.workExperiences.length > 0) && (
+      {workExperiences.length > 0 && (
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-semibold text-white text-sm">Work Experience</h2>
@@ -183,22 +187,22 @@ export default function DashboardPage() {
                 )}
               </div>
             ))}
-            {profile.workExperiences.length > 3 && (
-              <p className="text-gray-600 text-xs">+{profile.workExperiences.length - 3} more</p>
+            {workExperiences.length > 3 && (
+              <p className="text-gray-600 text-xs">+{workExperiences.length - 3} more</p>
             )}
           </div>
         </div>
       )}
 
       {/* Education snapshot */}
-      {profile && profile.educations.length > 0 && (
+      {educations.length > 0 && (
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-semibold text-white text-sm">Education</h2>
             <Link href="/profile" className="text-xs text-gray-500 hover:text-indigo-400 transition-colors">Manage</Link>
           </div>
           <div className="space-y-3">
-            {profile.educations.slice(0, 3).map(e => (
+            {educations.slice(0, 3).map(e => (
               <div key={e.id} className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center text-gray-500 text-xs flex-shrink-0 font-bold">
                   {e.institution[0]}
@@ -220,14 +224,14 @@ export default function DashboardPage() {
       )}
 
       {/* Projects snapshot */}
-      {profile && profile.projects.length > 0 && (
+      {projects.length > 0 && (
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-semibold text-white text-sm">Projects</h2>
             <Link href="/profile" className="text-xs text-gray-500 hover:text-indigo-400 transition-colors">Manage</Link>
           </div>
           <div className="space-y-4">
-            {profile.projects.slice(0, 3).map(p => (
+            {projects.slice(0, 3).map(p => (
               <div key={p.id} className="space-y-1.5">
                 <div className="flex items-center gap-2">
                   <p className="text-white text-sm font-medium">{p.name}</p>
@@ -239,7 +243,7 @@ export default function DashboardPage() {
                   </div>
                   <span className="text-xs text-gray-500">{p.completionPercentage}%</span>
                 </div>
-                {p.techStack.length > 0 && (
+                {(p.techStack ?? []).length > 0 && (
                   <div className="flex flex-wrap gap-1">
                     {p.techStack.slice(0, 5).map(t => (
                       <span key={t} className="bg-gray-800 text-gray-500 text-[11px] px-2 py-0.5 rounded-full">{t}</span>
@@ -248,15 +252,15 @@ export default function DashboardPage() {
                 )}
               </div>
             ))}
-            {profile.projects.length > 3 && (
-              <p className="text-gray-600 text-xs">+{profile.projects.length - 3} more</p>
+            {projects.length > 3 && (
+              <p className="text-gray-600 text-xs">+{projects.length - 3} more</p>
             )}
           </div>
         </div>
       )}
 
       {/* Empty state for new users */}
-      {profile && profile.skills.length === 0 && profile.workExperiences.length === 0 && profile.educations.length === 0 && profile.projects.length === 0 && (
+      {profile && skills.length === 0 && workExperiences.length === 0 && educations.length === 0 && projects.length === 0 && (
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-8 text-center space-y-3">
           <p className="text-gray-400 font-medium">Your profile is empty</p>
           <p className="text-gray-600 text-sm">Add skills, work experience, education and projects to stand out to recruiters.</p>

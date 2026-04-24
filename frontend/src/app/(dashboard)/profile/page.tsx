@@ -465,7 +465,7 @@ export default function ProfilePage() {
     setLocation(p.location ?? '');
     setPhoneNumber(p.phoneNumber ?? '');
     setAvailabilityStatus(p.availabilityStatus);
-    setSkills(p.skills);
+    setSkills(p.skills ?? []);
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -656,7 +656,7 @@ export default function ProfilePage() {
       )}
 
       {/* Skills display (view mode) */}
-      {!editing && profile && profile.skills.length > 0 && (
+      {!editing && profile && (profile.skills ?? []).length > 0 && (
         <SectionCard title="Skills">
           <div className="space-y-2">
             {profile.skills.map(s => (
@@ -673,19 +673,19 @@ export default function ProfilePage() {
       {profile && (
         <WorkExperienceSection
           profileId={profile.id}
-          items={profile.workExperiences}
+          items={profile.workExperiences ?? []}
           onRefresh={loadData}
         />
       )}
 
       {/* Education */}
       {profile && (
-        <EducationSection items={profile.educations} onRefresh={loadData} />
+        <EducationSection items={profile.educations ?? []} onRefresh={loadData} />
       )}
 
       {/* Projects */}
       {profile && (
-        <ProjectSection items={profile.projects} onRefresh={loadData} />
+        <ProjectSection items={profile.projects ?? []} onRefresh={loadData} />
       )}
 
       {/* Videos — Creator only */}
