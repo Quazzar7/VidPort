@@ -1,17 +1,23 @@
 import json
 import os
 import time
+from dotenv import load_dotenv
 
 import psycopg2
 from confluent_kafka import Consumer, KafkaException
 
-KAFKA_BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP", "kafka:9092")
-TOPIC = "jobs.raw"
-GROUP_ID = "job-processor"
-DB_DSN = os.getenv("DB_DSN", "postgresql://admin:password@db:5432/vidport")
+# Load environment variables from .env file if it exists
+load_dotenv()
+
+KAFKA_BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP")
+TOPIC = os.getenv("KAFKA_TOPIC", "jobs.raw")
+GROUP_ID = os.getenv("KAFKA_GROUP_ID", "job-processor")
+DB_DSN = os.getenv("DB_DSN")
 
 
 def connect_db(retries: int = 10, delay: int = 5):
+    if not DB_DSN:
+        raise ValueError("DB_DSN not found in environment or .env file")
     for attempt in range(retries):
         try:
             return psycopg2.connect(DB_DSN)

@@ -17,8 +17,11 @@ public class GetJobTrendsQueryHandler : IRequestHandler<GetJobTrendsQuery, List<
     {
         var cutoff = DateTime.UtcNow.AddDays(-7);
 
-        return await _db.SkillAggregates
+        var rows = await _db.SkillAggregates
             .Where(s => s.PeriodStart >= cutoff)
+            .ToListAsync(ct);
+
+        return rows
             .GroupBy(s => s.SkillName)
             .Select(g => new JobTrendDto(
                 g.Key,
@@ -26,6 +29,6 @@ public class GetJobTrendsQueryHandler : IRequestHandler<GetJobTrendsQuery, List<
                 g.Max(s => s.WeekOverWeekChange)))
             .OrderByDescending(t => t.JobCount)
             .Take(20)
-            .ToListAsync(ct);
+            .ToList();
     }
 }

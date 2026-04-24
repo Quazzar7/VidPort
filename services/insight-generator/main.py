@@ -2,14 +2,20 @@ import os
 import schedule
 import time
 from datetime import datetime, timezone
+from dotenv import load_dotenv
 
 import psycopg2
 
-DB_DSN = os.getenv("DB_DSN", "postgresql://admin:password@db:5432/vidport")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+# Load environment variables from .env file if it exists
+load_dotenv()
+
+DB_DSN = os.getenv("DB_DSN")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 
 def connect_db(retries: int = 10, delay: int = 5):
+    if not DB_DSN:
+        raise ValueError("DB_DSN not found in environment or .env file")
     for attempt in range(retries):
         try:
             return psycopg2.connect(DB_DSN)

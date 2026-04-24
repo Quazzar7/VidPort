@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scraper
+  namespace: apps
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: scraper
+  template:
+    metadata:
+      labels:
+        app: scraper
+    spec:
+      containers:
+        - name: scraper
+          image: ghcr.io/quazzar7/vidport-scraper:latest
+          env:
+            - name: KAFKA_BOOTSTRAP
+              value: kafka.platform.svc.cluster.local:9092
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi

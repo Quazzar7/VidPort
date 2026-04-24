@@ -15,7 +15,8 @@ public class GetJobRecommendationsQueryHandler : IRequestHandler<GetJobRecommend
 
     public async Task<List<JobRecommendationDto>> Handle(GetJobRecommendationsQuery request, CancellationToken ct)
         => await _db.RawJobs
-            .OrderByDescending(j => j.PostedAt)
+            .OrderByDescending(j => j.Source == "adzuna_in")
+            .ThenByDescending(j => j.PostedAt)
             .Take(20)
             .Select(j => new JobRecommendationDto(
                 j.Id,

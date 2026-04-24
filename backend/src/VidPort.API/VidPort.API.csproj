@@ -26,6 +26,7 @@
     <ProjectReference Include="..\VidPort.Modules.Profiles\VidPort.Modules.Profiles.csproj" />
     <ProjectReference Include="..\VidPort.Modules.Uploads\VidPort.Modules.Uploads.csproj" />
     <ProjectReference Include="..\VidPort.Modules.Communications\VidPort.Modules.Communications.csproj" />
+    <ProjectReference Include="..\VidPort.Modules.JobIntelligence\VidPort.Modules.JobIntelligence.csproj" />
   </ItemGroup>
 
 </Project>

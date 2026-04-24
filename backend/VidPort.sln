@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VidPort.Modules.Uploads", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VidPort.Modules.Communications", "src\VidPort.Modules.Communications\VidPort.Modules.Communications.csproj", "{E3CB7E81-63A8-49DD-9DB0-A6FC62D2BDCA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VidPort.Modules.JobIntelligence", "src\VidPort.Modules.JobIntelligence\VidPort.Modules.JobIntelligence.csproj", "{D4E5F6A7-B8C9-0123-ABCD-EF1234567890}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -62,6 +64,10 @@ Global
 		{E3CB7E81-63A8-49DD-9DB0-A6FC62D2BDCA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E3CB7E81-63A8-49DD-9DB0-A6FC62D2BDCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E3CB7E81-63A8-49DD-9DB0-A6FC62D2BDCA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4E5F6A7-B8C9-0123-ABCD-EF1234567890}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4E5F6A7-B8C9-0123-ABCD-EF1234567890}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4E5F6A7-B8C9-0123-ABCD-EF1234567890}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4E5F6A7-B8C9-0123-ABCD-EF1234567890}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{8990C323-F4AA-4CD4-BAA6-27CCDD6551B8} = {E037AFB4-118E-4C3F-81D7-A07DFB8584D9}
@@ -72,5 +78,6 @@ Global
 		{3A544D16-3A89-494F-B25B-3FD0284C0391} = {E037AFB4-118E-4C3F-81D7-A07DFB8584D9}
 		{A979A691-D99F-4AFE-9F23-473DAADD66F6} = {E037AFB4-118E-4C3F-81D7-A07DFB8584D9}
 		{E3CB7E81-63A8-49DD-9DB0-A6FC62D2BDCA} = {E037AFB4-118E-4C3F-81D7-A07DFB8584D9}
+		{D4E5F6A7-B8C9-0123-ABCD-EF1234567890} = {E037AFB4-118E-4C3F-81D7-A07DFB8584D9}
 	EndGlobalSection
 EndGlobal

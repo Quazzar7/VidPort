@@ -35,6 +35,55 @@ services:
     ports:
       - "5001:5000"
 
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    hostname: kafka
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://kafka:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+
+  scraper:
+    image: ghcr.io/quazzar7/vidport-scraper:latest
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_BOOTSTRAP: kafka:9092
+      ADZUNA_APP_ID: ${ADZUNA_APP_ID:-}
+      ADZUNA_APP_KEY: ${ADZUNA_APP_KEY:-}
+    restart: unless-stopped
+
+  processor:
+    image: ghcr.io/quazzar7/vidport-processor:latest
+    depends_on:
+      - kafka
+      - db
+    environment:
+      KAFKA_BOOTSTRAP: kafka:9092
+      DB_DSN: postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-vidport}
+    restart: unless-stopped
+
+  insight-generator:
+    image: ghcr.io/quazzar7/vidport-insight-generator:latest
+    depends_on:
+      - db
+    environment:
+      DB_DSN: postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-vidport}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    restart: unless-stopped
+
   frontend:
     image: ghcr.io/quazzar7/vidport-frontend:latest
     depends_on:
