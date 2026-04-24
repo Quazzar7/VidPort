@@ -1,7 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { api, JobInsightDto, JobTrendDto, JobRecommendationDto } from '@/lib/api';
+
+const INDIA_KEYWORDS = [
+  'india', 'bengaluru', 'bangalore', 'mumbai', 'delhi', 'new delhi',
+  'hyderabad', 'chennai', 'pune', 'kolkata', 'noida', 'gurgaon', 'gurugram',
+  'ahmedabad', 'jaipur', 'kochi', 'coimbatore', 'indore', 'remote, india', 'in',
+];
+
+function isIndiaJob(location?: string): boolean {
+  if (!location) return false;
+  const loc = location.toLowerCase();
+  return INDIA_KEYWORDS.some(k => loc.includes(k));
+}
 
 const INSIGHT_TYPE_STYLES: Record<string, string> = {
   trend: 'border-indigo-500/40 bg-indigo-500/10 text-indigo-300',
@@ -38,6 +50,7 @@ export default function JobIntelligencePage() {
   const [recs, setRecs] = useState<JobRecommendationDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [jobSearch, setJobSearch] = useState('');
 
   useEffect(() => {
     (async () => {
@@ -73,6 +86,25 @@ export default function JobIntelligencePage() {
   }
 
   const maxTrendCount = trends[0]?.jobCount ?? 1;
+
+  const filteredJobs = useMemo(() => {
+    const q = jobSearch.trim().toLowerCase();
+    const filtered = q
+      ? recs.filter(j =>
+          j.title.toLowerCase().includes(q) ||
+          j.company.toLowerCase().includes(q) ||
+          (j.location ?? '').toLowerCase().includes(q) ||
+          (j.skills ?? []).some(s => s.toLowerCase().includes(q))
+        )
+      : recs;
+
+    // India jobs first, then rest — both groups newest-first
+    const india = filtered.filter(j => isIndiaJob(j.location));
+    const rest  = filtered.filter(j => !isIndiaJob(j.location));
+    const byDate = (a: JobRecommendationDto, b: JobRecommendationDto) =>
+      new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime();
+    return [...india.sort(byDate), ...rest.sort(byDate)];
+  }, [recs, jobSearch]);
 
   return (
     <div className="h-full overflow-y-auto">
@@ -142,51 +174,118 @@ export default function JobIntelligencePage() {
         </Section>
 
         {/* Job recommendations */}
-        <Section title="Recent Jobs Tracked">
+        <div>
+          {/* Section header + search bar */}
+          <div className="flex items-center justify-between gap-4 mb-3">
+            <div className="flex items-center gap-3">
+              <h2 className="text-xs font-black uppercase tracking-widest text-gray-500">
+                Recent Jobs Tracked
+              </h2>
+              {recs.length > 0 && (
+                <span className="text-[10px] font-bold text-gray-600 bg-gray-800 px-2 py-0.5 rounded-full">
+                  {filteredJobs.length} / {recs.length}
+                </span>
+              )}
+              <span className="flex items-center gap-1 text-[10px] font-bold text-orange-400 bg-orange-500/10 border border-orange-500/20 px-2 py-0.5 rounded-full">
+                🇮🇳 India first
+              </span>
+            </div>
+            {recs.length > 0 && (
+              <div className="relative w-64">
+                <svg
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
+                  width="13" height="13" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                >
+                  <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                </svg>
+                <input
+                  type="text"
+                  value={jobSearch}
+                  onChange={e => setJobSearch(e.target.value)}
+                  placeholder="Search title, company, skill…"
+                  className="w-full bg-gray-900 border border-gray-800 rounded-xl pl-8 pr-4 py-2 text-xs text-white placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all"
+                />
+                {jobSearch && (
+                  <button
+                    onClick={() => setJobSearch('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
           {recs.length === 0 ? (
             <EmptyState message="No jobs tracked yet." />
+          ) : filteredJobs.length === 0 ? (
+            <EmptyState message={`No jobs match "${jobSearch}"`} />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {recs.map((job) => (
-                <div
-                  key={job.id}
-                  className="rounded-xl border border-gray-800 bg-gray-900/40 px-5 py-4 hover:border-gray-700 transition-colors"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <h3 className="text-sm font-bold text-white">{job.title}</h3>
-                      <p className="text-xs text-gray-400 mt-0.5">{job.company}</p>
-                    </div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-gray-600 bg-gray-800 px-2 py-0.5 rounded shrink-0">
-                      {job.source}
-                    </span>
-                  </div>
-                  {job.location && (
-                    <p className="text-xs text-gray-500 mt-2">{job.location}</p>
-                  )}
-                  {job.skills && job.skills.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-3">
-                      {job.skills.slice(0, 5).map((s, idx) => (
-                        <span
-                          key={idx}
-                          className="text-[10px] font-semibold bg-gray-800 text-gray-300 px-2 py-0.5 rounded-full"
-                        >
-                          {s}
+              {filteredJobs.map((job) => {
+                const india = isIndiaJob(job.location);
+                return (
+                  <div
+                    key={job.id}
+                    className={`rounded-xl border px-5 py-4 hover:border-gray-700 transition-colors relative ${
+                      india
+                        ? 'border-orange-500/30 bg-orange-500/5 hover:border-orange-500/50'
+                        : 'border-gray-800 bg-gray-900/40'
+                    }`}
+                  >
+                    {india && (
+                      <span className="absolute top-3 right-3 text-[10px] font-black tracking-widest text-orange-400 bg-orange-500/10 border border-orange-500/20 px-2 py-0.5 rounded-full">
+                        🇮🇳 India
+                      </span>
+                    )}
+                    <div className="flex items-start justify-between gap-2 pr-16">
+                      <div>
+                        <h3 className="text-sm font-bold text-white">{job.title}</h3>
+                        <p className="text-xs text-gray-400 mt-0.5">{job.company}</p>
+                      </div>
+                      {!india && (
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-600 bg-gray-800 px-2 py-0.5 rounded shrink-0">
+                          {job.source}
                         </span>
-                      ))}
-                      {job.skills.length > 5 && (
-                        <span className="text-[10px] text-gray-600">+{job.skills.length - 5}</span>
                       )}
                     </div>
-                  )}
-                  <p className="text-[10px] text-gray-600 mt-3">
-                    {new Date(job.postedAt).toLocaleDateString()}
-                  </p>
-                </div>
-              ))}
+                    {job.location && (
+                      <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                        {job.location}
+                      </p>
+                    )}
+                    {job.skills && job.skills.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-3">
+                        {job.skills.slice(0, 5).map((s, idx) => (
+                          <span
+                            key={idx}
+                            className="text-[10px] font-semibold bg-gray-800 text-gray-300 px-2 py-0.5 rounded-full"
+                          >
+                            {s}
+                          </span>
+                        ))}
+                        {job.skills.length > 5 && (
+                          <span className="text-[10px] text-gray-600">+{job.skills.length - 5}</span>
+                        )}
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between mt-3">
+                      <p className="text-[10px] text-gray-600">
+                        {new Date(job.postedAt).toLocaleDateString()}
+                      </p>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-600 bg-gray-800/80 px-2 py-0.5 rounded">
+                        {job.source}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
-        </Section>
+        </div>
 
       </div>
     </div>
