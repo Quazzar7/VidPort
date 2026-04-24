@@ -81,7 +81,6 @@ export default function DashboardPage() {
   const featuredVideo = resumeVideos.find(v => v.id === profile?.featuredVideoId) ?? resumeVideos[0] ?? null;
 
   const currentJob = profile?.workExperiences?.find(w => w.isCurrent);
-  const pastJobs = profile?.workExperiences?.filter(w => !w.isCurrent).slice(0, 2) ?? [];
   const skills = profile?.skills ?? [];
   const workExperiences = profile?.workExperiences ?? [];
   const educations = profile?.educations ?? [];
@@ -172,17 +171,17 @@ export default function DashboardPage() {
             <Link href="/profile" className="text-xs text-gray-500 hover:text-indigo-400 transition-colors">Manage</Link>
           </div>
           <div className="space-y-3">
-            {[currentJob, ...pastJobs].filter(Boolean).map(w => (
-              <div key={w!.id} className="flex items-start gap-3">
+            {workExperiences.slice(0, 3).map(w => (
+              <div key={w.id} className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center text-gray-500 text-xs flex-shrink-0 font-bold">
-                  {w!.company[0]}
+                  {w.company[0]}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-white text-sm font-medium">{w!.role}</p>
-                  <p className="text-gray-400 text-xs">{w!.company}{w!.location ? ` · ${w!.location}` : ''}</p>
-                  <p className="text-gray-600 text-xs">{w!.startDate} – {w!.isCurrent ? 'Present' : (w!.endDate ?? '')}</p>
+                  <p className="text-white text-sm font-medium">{w.role}</p>
+                  <p className="text-gray-400 text-xs">{w.company}{w.location ? ` · ${w.location}` : ''}</p>
+                  <p className="text-gray-600 text-xs">{w.startDate} – {w.isCurrent ? 'Present' : (w.endDate ?? '')}</p>
                 </div>
-                {w!.isCurrent && (
+                {w.isCurrent && (
                   <span className="text-[10px] bg-green-900/40 text-green-400 border border-green-800 px-2 py-0.5 rounded-full flex-shrink-0">Current</span>
                 )}
               </div>
