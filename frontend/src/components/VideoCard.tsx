@@ -167,8 +167,12 @@ export default function VideoCard({ video, isFeatured, onDelete, onDurationKnown
 
       {modalOpen && (
         <VideoModal
-          videoUrl={video.videoUrl}
-          title={`${VIDEO_TYPE_LABELS[video.type]} · ${new Date(video.createdAt).toLocaleDateString()}`}
+          videos={[{
+            id: video.id,
+            videoUrl: video.videoUrl,
+            title: `${VIDEO_TYPE_LABELS[video.type]} · ${new Date(video.createdAt).toLocaleDateString()}`
+          }]}
+          initialIndex={0}
           onClose={() => setModalOpen(false)}
         />
       )}

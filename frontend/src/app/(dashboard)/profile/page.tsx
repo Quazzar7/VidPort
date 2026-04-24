@@ -541,6 +541,13 @@ export default function ProfilePage() {
   const projectVideos = videos.filter(v => v.type === 1);
   const otherVideos = videos.filter(v => v.type === 2);
 
+  const portfolioTitle = isCreator ? 'Portfolio Videos' : 'Requirement Videos';
+  const portfolioDesc = isCreator 
+    ? 'Longer showcase videos. Set one as your Resume Video if it\'s under 1 minute.'
+    : 'Videos explaining your hiring needs. Set one as your "What we want" video if it\'s under 1 minute.';
+  const featureLabel = isCreator ? 'Resume video' : 'What we want';
+  const setFeatureLabel = isCreator ? 'Set as resume' : 'Set as primary';
+
   return (
     <div className="max-w-2xl space-y-6">
       <div className="flex items-center justify-between">
@@ -688,27 +695,27 @@ export default function ProfilePage() {
         <ProjectSection items={profile.projects ?? []} onRefresh={loadData} />
       )}
 
-      {/* Videos — Creator only */}
-      {isCreator && (
-        <>
-          <VideoStrip title="Portfolio Videos" description="Longer showcase videos. Set one as your Resume Video if it's under 1 minute."
-            videos={portfolioVideos} featuredVideoId={profile?.featuredVideoId ?? null}
-            featuringSaving={featuringSaving} onSetFeatured={handleSetFeatured}
-            onDelete={handleDelete} onDurationKnown={handleDurationKnown} showFeaturedControl />
-          <VideoStrip title="Project Videos" description="Demos of specific projects you've built."
-            videos={projectVideos} featuredVideoId={null} featuringSaving={null}
-            onSetFeatured={() => {}} onDelete={handleDelete} onDurationKnown={handleDurationKnown} showFeaturedControl={false} />
-          <VideoStrip title="Others" description="Anything that doesn't fit the above categories."
-            videos={otherVideos} featuredVideoId={null} featuringSaving={null}
-            onSetFeatured={() => {}} onDelete={handleDelete} onDurationKnown={handleDurationKnown} showFeaturedControl={false} />
-        </>
-      )}
+      {/* Videos */}
+      <VideoStrip 
+        title={portfolioTitle} 
+        description={portfolioDesc}
+        videos={portfolioVideos} featuredVideoId={profile?.featuredVideoId ?? null}
+        featuringSaving={featuringSaving} onSetFeatured={handleSetFeatured}
+        onDelete={handleDelete} onDurationKnown={handleDurationKnown} 
+        showFeaturedControl 
+        featureLabel={featureLabel}
+        setFeatureLabel={setFeatureLabel}
+      />
 
-      {!isCreator && (
-        <VideoStrip title="Videos" description="Videos you've shared on your profile."
-          videos={otherVideos} featuredVideoId={null} featuringSaving={null}
+      {isCreator && (
+        <VideoStrip title="Project Videos" description="Demos of specific projects you've built."
+          videos={projectVideos} featuredVideoId={null} featuringSaving={null}
           onSetFeatured={() => {}} onDelete={handleDelete} onDurationKnown={handleDurationKnown} showFeaturedControl={false} />
       )}
+
+      <VideoStrip title="Others" description="Anything that doesn't fit the above categories."
+        videos={otherVideos} featuredVideoId={null} featuringSaving={null}
+        onSetFeatured={() => {}} onDelete={handleDelete} onDurationKnown={handleDurationKnown} showFeaturedControl={false} />
     </div>
   );
 }
@@ -716,11 +723,13 @@ export default function ProfilePage() {
 function VideoStrip({
   title, description, videos, featuredVideoId, featuringSaving,
   onSetFeatured, onDelete, onDurationKnown, showFeaturedControl,
+  featureLabel = 'Resume video', setFeatureLabel = 'Set as resume'
 }: {
   title: string; description: string; videos: VideoDto[];
   featuredVideoId: string | null; featuringSaving: string | null;
   onSetFeatured: (id: string) => void; onDelete: (id: string) => void;
   onDurationKnown: (id: string, secs: number) => void; showFeaturedControl: boolean;
+  featureLabel?: string; setFeatureLabel?: string;
 }) {
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-3">
@@ -748,7 +757,7 @@ function VideoStrip({
                   eligibleForResume ? (
                     <button onClick={() => onSetFeatured(video.id)} disabled={featuringSaving === video.id}
                       className={`text-[10px] px-2 py-0.5 rounded-full transition-colors whitespace-nowrap ${isFeatured ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}>
-                      {featuringSaving === video.id ? '…' : isFeatured ? '★ Resume video' : 'Set as resume'}
+                      {featuringSaving === video.id ? '…' : isFeatured ? `★ ${featureLabel}` : setFeatureLabel}
                     </button>
                   ) : (
                     <span className="text-[10px] text-gray-600 px-2 whitespace-nowrap">{dur !== null ? `${dur}s — too long` : ''}</span>

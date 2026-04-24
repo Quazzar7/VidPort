@@ -11,7 +11,8 @@ const CREATOR_VIDEO_TYPES = [
 ];
 
 const RECRUITER_VIDEO_TYPES = [
-  { label: 'Video', value: 2, description: 'Share a video on your profile' },
+  { label: 'Requirement Video', value: 0, description: 'Share your hiring needs — set as "What we want" if under 1 min' },
+  { label: 'Other', value: 2, description: 'Anything else you want to share' },
 ];
 
 type UploadState = 'idle' | 'requesting' | 'uploading' | 'completing' | 'done' | 'error';

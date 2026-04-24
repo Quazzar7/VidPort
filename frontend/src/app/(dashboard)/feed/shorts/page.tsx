@@ -10,35 +10,77 @@ function fmtDuration(secs: number | null) {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-function ShortCard({ video, isActive, onLikeToggle, onSubscribeToggle, onBookmarkToggle }: {
+function ShortCard({ video, onLikeToggle, onSubscribeToggle, onBookmarkToggle }: {
   video: FeedVideoDto;
-  isActive: boolean;
   onLikeToggle: (id: string) => void;
   onSubscribeToggle: (id: string) => void;
   onBookmarkToggle: (id: string) => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
-    if (isActive) {
-      videoRef.current?.play().catch(() => {});
-    } else {
-      videoRef.current?.pause();
-    }
-  }, [isActive]);
+    const video = videoRef.current;
+    const container = containerRef.current;
+    if (!video || !container) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+          video.currentTime = 0;
+          video.play()
+            .then(() => setIsPlaying(true))
+            .catch(err => {
+              console.warn('Playback failed:', err);
+              setIsPlaying(false);
+            });
+        } else {
+          video.pause();
+          setIsPlaying(false);
+        }
+      });
+    }, {
+      threshold: [0.5]
+    });
+
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <div className="relative w-full h-full flex-shrink-0 bg-black">
+    <div ref={containerRef} className="relative w-full h-full flex-shrink-0 bg-black snap-start">
       <video
         ref={videoRef}
         src={video.videoUrl}
         loop
         playsInline
+        muted
+        preload="auto"
         className="absolute inset-0 w-full h-full object-contain"
+        onClick={() => {
+          if (videoRef.current?.paused) {
+            videoRef.current.play().then(() => setIsPlaying(true));
+          } else {
+            videoRef.current?.pause();
+            setIsPlaying(false);
+          }
+        }}
       />
 
+      {/* Play/Pause indicator for touch/click feedback */}
+      {!isPlaying && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="w-16 h-16 rounded-full bg-black/40 flex items-center justify-center">
+            <svg className="w-8 h-8 text-white/80 ml-1" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </div>
+        </div>
+      )}
+
       {/* right-side action buttons */}
-      <div className="absolute right-4 bottom-24 flex flex-col items-center gap-5">
+      <div className="absolute right-4 bottom-24 flex flex-col items-center gap-5 z-10">
         <button
           onClick={() => onLikeToggle(video.id)}
           className="flex flex-col items-center gap-1"
@@ -65,7 +107,7 @@ function ShortCard({ video, isActive, onLikeToggle, onSubscribeToggle, onBookmar
       </div>
 
       {/* bottom creator info */}
-      <div className="absolute bottom-4 left-4 right-20">
+      <div className="absolute bottom-4 left-4 right-20 z-10">
         <p className="text-white font-semibold text-sm drop-shadow-lg">
           {video.creatorHeadline ?? video.creatorSlug}
         </p>
@@ -90,24 +132,9 @@ function ShortCard({ video, isActive, onLikeToggle, onSubscribeToggle, onBookmar
 export default function ShortsPage() {
   const [videos, setVideos] = useState<FeedVideoDto[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     api.feed.getShorts(1).then(v => setVideos(v)).finally(() => setLoading(false));
-  }, []);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const handler = () => {
-      const idx = Math.round(container.scrollTop / container.clientHeight);
-      setActiveIndex(idx);
-    };
-
-    container.addEventListener('scroll', handler, { passive: true });
-    return () => container.removeEventListener('scroll', handler);
   }, []);
 
   function toggleLike(videoId: string) {
@@ -158,23 +185,30 @@ export default function ShortsPage() {
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-bold text-white">Resume Shorts</h1>
-      <div
-        ref={containerRef}
-        className="overflow-y-scroll snap-y snap-mandatory"
-        style={{ height: 'calc(100vh - 160px)' }}
-      >
-        {videos.map((v, i) => (
-          <div key={v.id} className="snap-start" style={{ height: 'calc(100vh - 160px)' }}>
+      <div className="max-w-md mx-auto relative border border-gray-800 rounded-2xl overflow-hidden shadow-2xl bg-black">
+        <div
+          className="overflow-y-scroll snap-y snap-mandatory h-[700px] hide-scrollbar"
+        >
+          {videos.map((v) => (
             <ShortCard
+              key={v.id}
               video={v}
-              isActive={i === activeIndex}
               onLikeToggle={toggleLike}
               onSubscribeToggle={toggleSubscribe}
               onBookmarkToggle={toggleBookmark}
             />
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
+      <style jsx global>{`
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .hide-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { api, ProfileDto, VideoDto } from '@/lib/api';
+import { useAuth } from '@/contexts/auth-context';
 import VideoModal from '@/components/VideoModal';
 
 const AVAILABILITY_LABELS: Record<number, string> = {
@@ -27,9 +28,16 @@ function Stars({ value }: { value: number | null }) {
   );
 }
 
-function VideoPreviewCard({ video }: { video: VideoDto }) {
+function VideoPreviewCard({ video, allVideos }: { video: VideoDto, allVideos: VideoDto[] }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [modalOpen, setModalOpen] = useState(false);
+
+  const videoList = allVideos.map(v => ({
+    id: v.id,
+    videoUrl: v.videoUrl,
+    title: 'Resume Video'
+  }));
+  const initialIdx = videoList.findIndex(v => v.id === video.id);
 
   return (
     <>
@@ -49,15 +57,25 @@ function VideoPreviewCard({ video }: { video: VideoDto }) {
           {['Pending', 'Processing', 'Complete', 'Failed'][video.status]}
         </span>
       </div>
-      {modalOpen && <VideoModal videoUrl={video.videoUrl} title="Resume Video" onClose={() => setModalOpen(false)} />}
+      {modalOpen && (
+        <VideoModal
+          videos={videoList}
+          initialIndex={initialIdx !== -1 ? initialIdx : 0}
+          onClose={() => setModalOpen(false)}
+        />
+      )}
     </>
   );
 }
 
 export default function DashboardPage() {
+  const { role } = useAuth();
   const [profile, setProfile] = useState<ProfileDto | null>(null);
   const [videos, setVideos] = useState<VideoDto[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const videoSectionTitle = role === 'Recruiter' ? 'What we want' : 'Resume Video';
+  const emptyVideoMessage = role === 'Recruiter' ? 'No requirement video' : 'No resume video';
 
   useEffect(() => {
     Promise.all([
@@ -122,12 +140,12 @@ export default function DashboardPage() {
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-white text-sm">Resume Video</h2>
+            <h2 className="font-semibold text-white text-sm">{videoSectionTitle}</h2>
             <Link href="/upload" className="text-xs bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded-lg transition-colors">+ Upload</Link>
           </div>
           {featuredVideo ? (
             <>
-              <VideoPreviewCard video={featuredVideo} />
+              <VideoPreviewCard video={featuredVideo} allVideos={resumeVideos} />
               {resumeVideos.length > 1 && (
                 <Link href="/profile" className="text-xs text-indigo-400 hover:text-indigo-300">
                   {resumeVideos.length - 1} other video{resumeVideos.length > 2 ? 's' : ''} — manage in Profile
@@ -136,7 +154,7 @@ export default function DashboardPage() {
             </>
           ) : (
             <div className="aspect-video bg-gray-800 rounded-lg flex items-center justify-center">
-              <p className="text-gray-600 text-sm">No resume video</p>
+              <p className="text-gray-600 text-sm">{emptyVideoMessage}</p>
             </div>
           )}
         </div>

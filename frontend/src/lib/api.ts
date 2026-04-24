@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 type RequestOptions = Omit<RequestInit, 'body'> & { body?: unknown };
 
@@ -138,6 +138,10 @@ export const api = {
 
     toggleProfileBookmark: (profileId: string) =>
       request<{ bookmarked: boolean }>(`/api/social/profiles/${profileId}/bookmark`, { method: 'POST' }),
+
+    getLikedVideos: () => request<FeedVideoDto[]>('/api/social/liked-videos'),
+
+    getSubscriptions: () => request<SubscribedCreatorDto[]>('/api/social/subscriptions'),
   },
 };
 
@@ -197,6 +201,7 @@ export interface ProfileDto {
   featuredVideoId: string | null;
   subscriberCount: number;
   isSubscribed: boolean;
+  role: number;
   workExperiences: WorkExperienceDto[];
   educations: EducationDto[];
   projects: ProjectDto[];
@@ -305,6 +310,15 @@ export interface BookmarkDto {
   bookmarkedProfileSlug: string | null;
   bookmarkedProfileHeadline: string | null;
   createdAt: string;
+}
+
+export interface SubscribedCreatorDto {
+  profileId: string;
+  slug: string;
+  headline: string | null;
+  location: string | null;
+  subscriberCount: number;
+  subscribedAt: string;
 }
 
 export const AVAILABILITY_LABELS: Record<number, string> = {

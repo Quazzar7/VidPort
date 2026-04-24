@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { api, ProfileDto } from '@/lib/api';
 
 const AVAILABILITY_LABELS: Record<number, string> = {
@@ -50,6 +50,7 @@ function ResumeVideo({ videoUrl, title }: { videoUrl: string; title: string }) {
 
 export default function PublicProfilePage() {
   const { slug } = useParams<{ slug: string }>();
+  const router = useRouter();
   const [profile, setProfile] = useState<ProfileDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -95,16 +96,41 @@ export default function PublicProfilePage() {
         <div className="text-center space-y-3">
           <p className="text-white text-lg font-semibold">Profile not found</p>
           <p className="text-gray-500 text-sm">The creator at /{slug} doesn&apos;t exist.</p>
+          <button
+            onClick={() => router.back()}
+            className="mt-4 text-indigo-400 hover:text-indigo-300 text-sm font-medium"
+          >
+            &larr; Go Back
+          </button>
         </div>
       </div>
     );
   }
 
   const currentJob = (profile.workExperiences ?? []).find(w => w.isCurrent);
+  const isRecruiter = profile.role === 1; // 1 = Recruiter
+  const videoSectionTitle = isRecruiter ? 'What we want' : 'Resume Video';
+  const emptyVideoMessage = isRecruiter ? 'No requirement video' : 'No featured resume video';
+  const emptyVideoDesc = isRecruiter 
+    ? 'Requirement video available — sign in to watch' 
+    : 'Resume video available — sign in to watch';
 
   return (
     <div className="min-h-screen bg-gray-950">
       <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
+        
+        {/* Navigation Bar */}
+        <div className="flex items-center justify-between mb-2">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm font-medium group bg-gray-900/50 px-3 py-1.5 rounded-lg border border-gray-800"
+          >
+            <svg className="w-4 h-4 transform transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back
+          </button>
+        </div>
 
         {/* Header */}
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
@@ -154,7 +180,7 @@ export default function PublicProfilePage() {
         <div className="grid gap-4 md:grid-cols-2">
           {/* Resume Video */}
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-            <h2 className="font-semibold text-white mb-3">Resume Video</h2>
+            <h2 className="font-semibold text-white mb-3">{videoSectionTitle}</h2>
             {profile.featuredVideoId ? (
               (() => {
                 const v = profile.projects.find(p => p.videoId === profile.featuredVideoId);
@@ -162,14 +188,14 @@ export default function PublicProfilePage() {
                 return (
                   <div className="aspect-video bg-gray-800 rounded-lg flex items-center justify-center">
                     <p className="text-gray-500 text-sm text-center px-4">
-                      Resume video available — sign in to watch
+                      {emptyVideoDesc}
                     </p>
                   </div>
                 );
               })()
             ) : (
               <div className="aspect-video bg-gray-800 rounded-lg flex items-center justify-center">
-                <p className="text-gray-600 text-sm">No featured resume video</p>
+                <p className="text-gray-600 text-sm">{emptyVideoMessage}</p>
               </div>
             )}
           </div>

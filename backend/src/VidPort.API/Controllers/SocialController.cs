@@ -5,7 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VidPort.Infrastructure.Data;
 using VidPort.Modules.Profiles.Commands;
+using VidPort.Modules.Profiles.Queries;
 using VidPort.Modules.Uploads.Commands;
+using VidPort.Modules.Uploads.Queries;
 
 namespace VidPort.API.Controllers;
 
@@ -53,6 +55,30 @@ public class SocialController : ControllerBase
         var profileId = await GetProfileId();
         var bookmarked = await _mediator.Send(new ToggleProfileBookmarkCommand(profileId, targetProfileId));
         return Ok(new { bookmarked });
+    }
+
+    [HttpGet("liked-videos")]
+    public async Task<IActionResult> GetMyLikedVideos()
+    {
+        var userId = GetUserId();
+        var videos = await _mediator.Send(new GetMyLikedVideosQuery(userId));
+        return Ok(videos);
+    }
+
+    [HttpGet("subscriptions")]
+    public async Task<IActionResult> GetMySubscriptions()
+    {
+        var userId = GetUserId();
+        var subs = await _mediator.Send(new GetMySubscriptionsQuery(userId));
+        return Ok(subs);
+    }
+
+    private Guid GetUserId()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
+        if (string.IsNullOrEmpty(userIdClaim))
+            throw new Exception("User ID not found in claims");
+        return Guid.Parse(userIdClaim);
     }
 
     private async Task<Guid> GetProfileId()

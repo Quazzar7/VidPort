@@ -51,7 +51,7 @@ public static class ProfileMapper
         return new ProfileDto(
             profile.Id, profile.Slug, profile.Headline, profile.Bio, profile.Location,
             profile.PhoneNumber, profile.AvailabilityStatus, skills, profile.FeaturedVideoId,
-            subscriberCount, isSubscribed, workExperiences, educations, projects
+            subscriberCount, isSubscribed, profile.User.Role, workExperiences, educations, projects
         );
     }
 

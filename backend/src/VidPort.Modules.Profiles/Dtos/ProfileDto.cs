@@ -53,6 +53,7 @@ public record ProfileDto(
     Guid? FeaturedVideoId,
     int SubscriberCount,
     bool IsSubscribed,
+    UserRole Role,
     List<WorkExperienceDto> WorkExperiences,
     List<EducationDto> Educations,
     List<ProjectDto> Projects

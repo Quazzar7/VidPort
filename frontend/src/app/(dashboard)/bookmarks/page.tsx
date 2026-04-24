@@ -25,6 +25,16 @@ export default function BookmarksPage() {
     );
   }
 
+  const videoModalList = videoBookmarks.map(b => ({
+    id: b.id,
+    videoUrl: b.videoUrl || '',
+    title: b.videoType ?? 'Video',
+    creatorHeadline: b.bookmarkedProfileHeadline,
+    creatorSlug: b.bookmarkedProfileSlug
+  }));
+
+  const selectedIdx = videoModalList.findIndex(v => v.videoUrl === modalVideo?.url);
+
   return (
     <div className="max-w-2xl space-y-6">
       <h1 className="text-2xl font-bold text-white">Bookmarks</h1>
@@ -95,10 +105,10 @@ export default function BookmarksPage() {
         </>
       )}
 
-      {modalVideo && (
+      {modalVideo && selectedIdx !== -1 && (
         <VideoModal
-          videoUrl={modalVideo.url}
-          title={modalVideo.title}
+          videos={videoModalList}
+          initialIndex={selectedIdx}
           onClose={() => setModalVideo(null)}
         />
       )}
