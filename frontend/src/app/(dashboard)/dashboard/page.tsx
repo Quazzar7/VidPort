@@ -150,8 +150,8 @@ export default function DashboardPage() {
             <Link href="/profile" className="text-xs text-gray-500 hover:text-indigo-400 transition-colors">Edit</Link>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-2">
-            {skills.slice(0, 9).map(s => (
-              <div key={s.name} className="flex items-center gap-2 min-w-0">
+            {skills.slice(0, 9).map((s, i) => (
+              <div key={s.name ?? i} className="flex items-center gap-2 min-w-0">
                 <span className="text-gray-300 text-sm truncate flex-1">{s.name}</span>
                 <Stars value={s.stars} />
               </div>
@@ -171,8 +171,8 @@ export default function DashboardPage() {
             <Link href="/profile" className="text-xs text-gray-500 hover:text-indigo-400 transition-colors">Manage</Link>
           </div>
           <div className="space-y-3">
-            {workExperiences.slice(0, 3).map(w => (
-              <div key={w.id} className="flex items-start gap-3">
+            {workExperiences.slice(0, 3).map((w, i) => (
+              <div key={w.id ?? i} className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center text-gray-500 text-xs flex-shrink-0 font-bold">
                   {w.company[0]}
                 </div>
@@ -201,8 +201,8 @@ export default function DashboardPage() {
             <Link href="/profile" className="text-xs text-gray-500 hover:text-indigo-400 transition-colors">Manage</Link>
           </div>
           <div className="space-y-3">
-            {educations.slice(0, 3).map(e => (
-              <div key={e.id} className="flex items-start gap-3">
+            {educations.slice(0, 3).map((e, i) => (
+              <div key={e.id ?? i} className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center text-gray-500 text-xs flex-shrink-0 font-bold">
                   {e.institution[0]}
                 </div>
@@ -230,8 +230,8 @@ export default function DashboardPage() {
             <Link href="/profile" className="text-xs text-gray-500 hover:text-indigo-400 transition-colors">Manage</Link>
           </div>
           <div className="space-y-4">
-            {projects.slice(0, 3).map(p => (
-              <div key={p.id} className="space-y-1.5">
+            {projects.slice(0, 3).map((p, i) => (
+              <div key={p.id ?? i} className="space-y-1.5">
                 <div className="flex items-center gap-2">
                   <p className="text-white text-sm font-medium">{p.name}</p>
                   {p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" className="text-indigo-400 text-xs hover:text-indigo-300">↗</a>}
@@ -244,8 +244,8 @@ export default function DashboardPage() {
                 </div>
                 {(p.techStack ?? []).length > 0 && (
                   <div className="flex flex-wrap gap-1">
-                    {p.techStack.slice(0, 5).map(t => (
-                      <span key={t} className="bg-gray-800 text-gray-500 text-[11px] px-2 py-0.5 rounded-full">{t}</span>
+                    {p.techStack.slice(0, 5).map((t, ti) => (
+                      <span key={t ?? ti} className="bg-gray-800 text-gray-500 text-[11px] px-2 py-0.5 rounded-full">{t}</span>
                     ))}
                   </div>
                 )}
