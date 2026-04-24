@@ -156,8 +156,8 @@ function WorkExperienceSection({ profileId, items, onRefresh }: { profileId: str
         <p className="text-gray-600 text-sm">No work experience added yet.</p>
       )}
 
-      {items.map(w => (
-        <div key={w.id} className="border border-gray-800 rounded-lg p-4 space-y-1">
+      {items.map((w, i) => (
+        <div key={w.id ?? i} className="border border-gray-800 rounded-lg p-4 space-y-1">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-white font-medium text-sm">{w.role}</p>
@@ -255,8 +255,8 @@ function EducationSection({ items, onRefresh }: { items: EducationDto[]; onRefre
         <p className="text-gray-600 text-sm">No education added yet.</p>
       )}
 
-      {items.map(e => (
-        <div key={e.id} className="border border-gray-800 rounded-lg p-4 space-y-1">
+      {items.map((e, i) => (
+        <div key={e.id ?? i} className="border border-gray-800 rounded-lg p-4 space-y-1">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-white font-medium text-sm">{e.institution}</p>
@@ -353,8 +353,8 @@ function ProjectSection({ items, onRefresh }: { items: ProjectDto[]; onRefresh: 
             </div>
             {form.techStack.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
-                {form.techStack.map(t => (
-                  <span key={t} className="flex items-center gap-1 bg-gray-700 text-gray-300 text-xs px-2 py-0.5 rounded-full">
+                {form.techStack.map((t, ti) => (
+                  <span key={t ?? ti} className="flex items-center gap-1 bg-gray-700 text-gray-300 text-xs px-2 py-0.5 rounded-full">
                     {t}
                     <button type="button" onClick={() => setForm(p => ({ ...p, techStack: p.techStack.filter(x => x !== t) }))}
                       className="text-gray-500 hover:text-red-400">&times;</button>
@@ -385,8 +385,8 @@ function ProjectSection({ items, onRefresh }: { items: ProjectDto[]; onRefresh: 
         <p className="text-gray-600 text-sm">No projects added yet.</p>
       )}
 
-      {items.map(p => (
-        <div key={p.id} className="border border-gray-800 rounded-lg p-4 space-y-2">
+      {items.map((p, i) => (
+        <div key={p.id ?? i} className="border border-gray-800 rounded-lg p-4 space-y-2">
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
@@ -410,8 +410,8 @@ function ProjectSection({ items, onRefresh }: { items: ProjectDto[]; onRefresh: 
           </div>
           {p.techStack.length > 0 && (
             <div className="flex flex-wrap gap-1">
-              {p.techStack.map(t => (
-                <span key={t} className="bg-gray-800 text-gray-400 text-[11px] px-2 py-0.5 rounded-full">{t}</span>
+              {p.techStack.map((t, ti) => (
+                <span key={t ?? ti} className="bg-gray-800 text-gray-400 text-[11px] px-2 py-0.5 rounded-full">{t}</span>
               ))}
             </div>
           )}
@@ -633,8 +633,8 @@ export default function ProfilePage() {
             </div>
             {skills.length > 0 && (
               <div className="space-y-2">
-                {skills.map(s => (
-                  <div key={s.name} className="flex items-center gap-3 bg-gray-800 rounded-lg px-3 py-2">
+                {skills.map((s, i) => (
+                  <div key={s.name ?? i} className="flex items-center gap-3 bg-gray-800 rounded-lg px-3 py-2">
                     <span className="text-gray-300 text-sm flex-1">{s.name}</span>
                     <Stars value={s.stars} onChange={v => setSkillStars(s.name, v)} />
                     <button type="button" onClick={() => setSkills(prev => prev.filter(x => x.name !== s.name))}
@@ -659,8 +659,8 @@ export default function ProfilePage() {
       {!editing && profile && (profile.skills ?? []).length > 0 && (
         <SectionCard title="Skills">
           <div className="space-y-2">
-            {profile.skills.map(s => (
-              <div key={s.name} className="flex items-center gap-3">
+            {(profile.skills ?? []).map((s, i) => (
+              <div key={s.name ?? i} className="flex items-center gap-3">
                 <span className="text-gray-300 text-sm flex-1">{s.name}</span>
                 <Stars value={s.stars} />
               </div>
