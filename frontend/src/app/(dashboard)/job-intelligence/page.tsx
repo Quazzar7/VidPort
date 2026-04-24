@@ -6,7 +6,7 @@ import { api, JobInsightDto, JobTrendDto, JobRecommendationDto } from '@/lib/api
 const INDIA_KEYWORDS = [
   'india', 'bengaluru', 'bangalore', 'mumbai', 'delhi', 'new delhi',
   'hyderabad', 'chennai', 'pune', 'kolkata', 'noida', 'gurgaon', 'gurugram',
-  'ahmedabad', 'jaipur', 'kochi', 'coimbatore', 'indore', 'remote, india', 'in',
+  'ahmedabad', 'jaipur', 'kochi', 'coimbatore', 'indore',
 ];
 
 function isIndiaJob(location?: string): boolean {
