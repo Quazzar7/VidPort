@@ -25,8 +25,7 @@ public class GetFeedQueryHandler : IRequestHandler<GetFeedQuery, List<FeedVideoD
 
         var videos = await _context.Videos
             .Include(v => v.Profile)
-            .Where(v => v.DeletedAt == null && v.Status == VideoStatus.Complete &&
-                        (v.Type == VideoType.Project || v.Type == VideoType.Other))
+            .Where(v => v.DeletedAt == null && v.Status == VideoStatus.Complete)
             .OrderByDescending(v => v.CreatedAt)
             .Skip((request.Page - 1) * request.PageSize)
             .Take(request.PageSize)

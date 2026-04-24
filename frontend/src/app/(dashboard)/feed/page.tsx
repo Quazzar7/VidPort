@@ -15,7 +15,7 @@ function fmtDuration(secs: number | null) {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-const VIDEO_TYPE_LABELS: Record<number, string> = { 1: 'Project', 2: 'Other' };
+const VIDEO_TYPE_LABELS: Record<number, string> = { 0: 'Resume', 1: 'Project', 2: 'Other' };
 
 function FeedCard({ video, onLikeToggle, onBookmarkToggle, onSubscribeToggle }: {
   video: FeedVideoDto;
