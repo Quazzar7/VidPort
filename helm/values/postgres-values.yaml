@@ -1,0 +1,26 @@
+global:
+  security:
+    allowInsecureImages: true
+
+image:
+  registry: docker.io
+  repository: pgvector/pgvector
+  tag: pg16
+  pullPolicy: IfNotPresent
+
+auth:
+  database: vidport
+  username: admin
+  password: "vidport_pass"
+  postgresPassword: "vidport_pass"
+
+primary:
+  persistence:
+    size: 5Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi

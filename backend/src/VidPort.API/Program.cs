@@ -9,6 +9,7 @@ using VidPort.Modules.Auth;
 using VidPort.Modules.Profiles;
 using VidPort.Modules.Uploads;
 using VidPort.Modules.Communications;
+using Prometheus;
 using VidPort.Modules.JobIntelligence;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -53,11 +54,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+var corsOrigins = builder.Configuration["Cors:AllowedOrigins"]?.Split(';')
+    ?? ["http://localhost:3000"];
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:3000")
+        policy.WithOrigins(corsOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -65,6 +69,12 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -83,6 +93,9 @@ app.UseExceptionHandler(err => err.Run(async ctx =>
 }));
 
 app.UseCors("AllowFrontend");
+
+app.UseMetricServer();
+app.UseHttpMetrics();
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -11,9 +11,10 @@ const CREATOR_NAV = [
   { href: '/feed', label: 'Feed' },
   { href: '/feed/shorts', label: 'Shorts' },
   { href: '/search', label: 'Search' },
+  { href: '/job-matcher', label: 'Job Matcher' },
+  { href: '/job-intelligence', label: 'Job Intel' },
   { href: '/messages', label: 'Messages' },
   { href: '/schedule', label: 'Schedule' },
-  { href: '/job-intelligence', label: 'Job Intel' },
 ];
 
 const RECRUITER_NAV = [
@@ -24,9 +25,9 @@ const RECRUITER_NAV = [
   { href: '/feed/shorts', label: 'Shorts' },
   { href: '/search', label: 'Search' },
   { href: '/bookmarks', label: 'Bookmarks' },
+  { href: '/job-intelligence', label: 'Job Intel' },
   { href: '/messages', label: 'Messages' },
   { href: '/schedule', label: 'Schedule' },
-  { href: '/job-intelligence', label: 'Job Intel' },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {

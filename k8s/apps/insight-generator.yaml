@@ -5,7 +5,7 @@ metadata:
   namespace: apps
 type: Opaque
 stringData:
-  DB_DSN: "postgresql://admin:CHANGE_ME@postgres.platform.svc.cluster.local:5432/vidport"
+  DB_DSN: "postgresql://admin:vidport_pass@postgres.platform.svc.cluster.local:5432/vidport"
   OPENAI_API_KEY: ""
 ---
 apiVersion: apps/v1
@@ -26,13 +26,14 @@ spec:
       containers:
         - name: insight-generator
           image: ghcr.io/quazzar7/vidport-insight-generator:latest
+          imagePullPolicy: IfNotPresent
           envFrom:
             - secretRef:
                 name: insight-generator-secrets
           resources:
             requests:
-              cpu: 50m
-              memory: 64Mi
-            limits:
-              cpu: 200m
+              cpu: 100m
               memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

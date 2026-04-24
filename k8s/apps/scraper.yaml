@@ -1,3 +1,13 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: scraper-secrets
+  namespace: apps
+type: Opaque
+stringData:
+  ADZUNA_APP_ID: ""
+  ADZUNA_APP_KEY: ""
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -16,13 +26,17 @@ spec:
       containers:
         - name: scraper
           image: ghcr.io/quazzar7/vidport-scraper:latest
+          imagePullPolicy: IfNotPresent
           env:
             - name: KAFKA_BOOTSTRAP
               value: kafka.platform.svc.cluster.local:9092
+          envFrom:
+            - secretRef:
+                name: scraper-secrets
           resources:
             requests:
               cpu: 50m
               memory: 64Mi
             limits:
               cpu: 200m
-              memory: 128Mi
+              memory: 256Mi

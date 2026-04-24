@@ -1,0 +1,28 @@
+grafana:
+  adminPassword: "admin"
+  persistence:
+    enabled: false
+  service:
+    type: ClusterIP
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
+prometheus:
+  prometheusSpec:
+    retention: 7d
+    storageSpec: {}
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+
+alertmanager:
+  enabled: false
+
+nodeExporter:
+  enabled: true
+
+kubeStateMetrics:
+  enabled: true

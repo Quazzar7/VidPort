@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { api, CommunicationThreadDto, CommunicationMessageDto, CommunicationType } from '@/lib/api';
+import { generateMeetLink } from '@/lib/meetLink';
 import { useAuth } from '@/contexts/auth-context';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -368,15 +369,22 @@ export default function MessagesPage() {
                     </div>
                   )}
                   {showMeetingLink && (
-                    <div className="flex-1 flex items-center gap-3 bg-gray-800/50 p-3 rounded-2xl border border-gray-700">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">Link:</span>
+                    <div className="flex-1 flex items-center gap-2 bg-gray-800/50 p-3 rounded-2xl border border-gray-700">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 flex-shrink-0">Link:</span>
                       <input
                         type="url"
                         value={meetingLink}
                         onChange={e => setMeetingLink(e.target.value)}
-                        placeholder="Zoom/Google Meet..."
-                        className="bg-transparent text-white text-xs focus:outline-none flex-1 placeholder:text-gray-600"
+                        placeholder="Paste or generate..."
+                        className="bg-transparent text-white text-xs focus:outline-none flex-1 placeholder:text-gray-600 min-w-0"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setMeetingLink(generateMeetLink())}
+                        className="flex-shrink-0 px-2.5 py-1.5 bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/30 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"
+                      >
+                        ✦ Gen
+                      </button>
                     </div>
                   )}
                 </div>
@@ -434,13 +442,22 @@ export default function MessagesPage() {
               </div>
               <div className="space-y-1.5">
                 <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500">Meeting Link</label>
-                <input
-                  type="url"
-                  value={editMeetingLink}
-                  onChange={e => setEditMeetingLink(e.target.value)}
-                  placeholder="Zoom/Google Meet..."
-                  className="w-full bg-gray-800 border border-gray-700 rounded-2xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={editMeetingLink}
+                    onChange={e => setEditMeetingLink(e.target.value)}
+                    placeholder="Paste or generate..."
+                    className="flex-1 bg-gray-800 border border-gray-700 rounded-2xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setEditMeetingLink(generateMeetLink())}
+                    className="flex-shrink-0 px-4 py-3 bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/30 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap"
+                  >
+                    ✦ Generate
+                  </button>
+                </div>
               </div>
               <div className="space-y-1.5">
                 <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500">Notes / Description</label>

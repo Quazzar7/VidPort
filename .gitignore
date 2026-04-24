@@ -32,3 +32,13 @@ minio_data/
 # Local Temporary Files
 token.txt
 *.log
+
+# Generated PDFs
+*.pdf
+
+# Claude IDE settings (local only)
+.claude/settings.local.json
+
+# Secrets / env files
+**/.env
+services/**/.env

@@ -148,6 +148,7 @@ export const api = {
     getInsights: () => request<JobInsightDto[]>('/api/jobs/insights'),
     getTrends: () => request<JobTrendDto[]>('/api/jobs/trends'),
     getRecommendations: () => request<JobRecommendationDto[]>('/api/jobs/recommendations'),
+    match: (profile: UserExpertiseProfile) => request<JobMatchDto[]>('/api/jobs/match', { method: 'POST', body: profile }),
   },
 
   communications: {
@@ -420,6 +421,24 @@ export interface JobTrendDto {
   skill: string;
   jobCount: number;
   weekOverWeekChange: number;
+}
+
+export interface UserExpertiseProfile {
+  role: string;
+  experienceLevel: string;
+  skills: string[];
+  minSalary?: number;
+}
+
+export interface JobMatchDto {
+  id: string;
+  title: string;
+  company: string;
+  location?: string;
+  description?: string;
+  salaryRange?: string;
+  score: number;
+  url?: string;
 }
 
 export interface JobRecommendationDto {

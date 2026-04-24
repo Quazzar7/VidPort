@@ -1,22 +1,44 @@
 namespace VidPort.Modules.JobIntelligence.Dtos;
 
+public record UserExpertiseProfile(
+    string Role,
+    string ExperienceLevel,
+    List<string> Skills,
+    decimal? MinSalary
+);
+
+public record JobMatchDto(
+    Guid Id,
+    string Title,
+    string Company,
+    string? Location,
+    string? Description,
+    string? SalaryRange,
+    int Score,
+    string? Url
+);
+
 public record JobInsightDto(
     Guid Id,
     string Type,
     string Title,
     string Body,
-    DateTime GeneratedAt);
+    DateTime GeneratedAt
+);
 
 public record JobTrendDto(
     string Skill,
     int JobCount,
-    int WeekOverWeekChange);
+    double WeekOverWeekChange
+);
 
 public record JobRecommendationDto(
     Guid Id,
     string Title,
     string Company,
     string? Location,
-    string[]? Skills,
+    List<string>? Skills,
     string Source,
-    DateTime PostedAt);
+    DateTime PostedAt
+);
+

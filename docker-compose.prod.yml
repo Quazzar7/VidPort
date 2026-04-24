@@ -1,43 +1,80 @@
+# Production Docker Compose
+# ─────────────────────────────────────────────────────────────────────────────
+# Uses pre-built images from GHCR. No local builds.
+# All secrets MUST be provided via a .env file or environment variables.
+# Copy .env.example → .env and fill in real values before running.
+#
+# Usage:
+#   docker compose -f docker-compose.prod.yml up -d
+# ─────────────────────────────────────────────────────────────────────────────
+
+version: '3.8'
+
 services:
+
+  # ── Data Layer ──────────────────────────────────────────────────────────────
+
   db:
     image: pgvector/pgvector:pg16
+    container_name: vidport_db
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-vidport}
       POSTGRES_USER: ${POSTGRES_USER:-admin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-vidport}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:alpine
+    container_name: vidport_redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
 
   minio:
     image: minio/minio
-    command: server /data --console-address ":9001"
+    container_name: vidport_minio
+    restart: unless-stopped
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-password}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     volumes:
       - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  backend:
-    image: ghcr.io/quazzar7/vidport-backend:latest
+  createbuckets:
+    image: minio/mc
+    container_name: vidport_createbuckets
     depends_on:
-      - db
-      - redis
-      - minio
-    environment:
-      ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=${POSTGRES_DB:-vidport};Username=${POSTGRES_USER:-admin};Password=${POSTGRES_PASSWORD:-password}
-      Redis__Connection: redis:6379
-      S3Options__ServiceUrl: http://minio:9000
-      S3Options__AccessKey: ${MINIO_ROOT_USER:-admin}
-      S3Options__SecretKey: ${MINIO_ROOT_PASSWORD:-password}
-    ports:
-      - "5001:5000"
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc alias set myminio http://minio:9000 ${MINIO_ROOT_USER:-admin} ${MINIO_ROOT_PASSWORD};
+      /usr/bin/mc mb --ignore-existing myminio/videos;
+      /usr/bin/mc anonymous set public myminio/videos;
+      exit 0;
+      "
+
+  # ── Messaging ───────────────────────────────────────────────────────────────
 
   kafka:
     image: confluentinc/cp-kafka:7.6.0
     hostname: kafka
+    container_name: vidport_kafka
+    restart: unless-stopped
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
@@ -54,45 +91,130 @@ services:
       KAFKA_LOG_DIRS: /var/lib/kafka/data
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      start_period: 30s
+      interval: 10s
+      timeout: 10s
+      retries: 5
 
-  scraper:
-    image: ghcr.io/quazzar7/vidport-scraper:latest
-    depends_on:
-      - kafka
-    environment:
-      KAFKA_BOOTSTRAP: kafka:9092
-      ADZUNA_APP_ID: ${ADZUNA_APP_ID:-}
-      ADZUNA_APP_KEY: ${ADZUNA_APP_KEY:-}
-    restart: unless-stopped
+  # ── Application Layer ───────────────────────────────────────────────────────
 
-  processor:
-    image: ghcr.io/quazzar7/vidport-processor:latest
-    depends_on:
-      - kafka
-      - db
-    environment:
-      KAFKA_BOOTSTRAP: kafka:9092
-      DB_DSN: postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-vidport}
+  backend:
+    image: ghcr.io/quazzar7/vidport-backend:latest
+    container_name: vidport_backend
     restart: unless-stopped
-
-  insight-generator:
-    image: ghcr.io/quazzar7/vidport-insight-generator:latest
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      minio:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
     environment:
-      DB_DSN: postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-vidport}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-    restart: unless-stopped
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:5000
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=${POSTGRES_DB:-vidport};Username=${POSTGRES_USER:-admin};Password=${POSTGRES_PASSWORD}"
+      Redis__ConnectionString: "redis:6379"
+      S3__ServiceUrl: "http://minio:9000"
+      S3__AccessKey: "${MINIO_ROOT_USER:-admin}"
+      S3__SecretKey: "${MINIO_ROOT_PASSWORD}"
+      S3__BucketName: "videos"
+      Kafka__BootstrapServers: "kafka:9092"
+      JwtOptions__SecretKey: "${JWT_SECRET_KEY}"
+      JwtOptions__Issuer: "VidPort"
+      JwtOptions__Audience: "VidPort"
+      Cors__AllowedOrigins: "${CORS_ALLOWED_ORIGINS:-http://localhost:3000}"
+    ports:
+      - "5001:5000"
 
   frontend:
     image: ghcr.io/quazzar7/vidport-frontend:latest
+    container_name: vidport_frontend
+    restart: unless-stopped
     depends_on:
       - backend
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:5001
+      INTERNAL_API_URL: "http://backend:5000"
+      # NEXT_PUBLIC_API_URL is baked at build time — set it when building the image:
+      # docker build --build-arg NEXT_PUBLIC_API_URL=https://yourdomain.com/api ...
     ports:
       - "3000:3000"
 
+  # ── Background Workers ──────────────────────────────────────────────────────
+
+  scraper:
+    image: ghcr.io/quazzar7/vidport-scraper:latest
+    container_name: vidport_scraper
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      KAFKA_BOOTSTRAP: "kafka:9092"
+      ADZUNA_APP_ID: "${ADZUNA_APP_ID:-}"
+      ADZUNA_APP_KEY: "${ADZUNA_APP_KEY:-}"
+
+  processor:
+    image: ghcr.io/quazzar7/vidport-processor:latest
+    container_name: vidport_processor
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+    environment:
+      KAFKA_BOOTSTRAP: "kafka:9092"
+      DB_DSN: "postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-vidport}"
+
+  insight-generator:
+    image: ghcr.io/quazzar7/vidport-insight-generator:latest
+    container_name: vidport_insight_generator
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_DSN: "postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-vidport}"
+      OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
+
+  # ── Monitoring ──────────────────────────────────────────────────────────────
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: vidport_prometheus
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: vidport_grafana
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_PASSWORD:-admin}"
+      GF_SERVER_ROOT_URL: "${GRAFANA_ROOT_URL:-http://localhost:3001}"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3001:3000"
+
 volumes:
   postgres_data:
+  redis_data:
   minio_data:
+  kafka_data:
+  prometheus_data:
+  grafana_data:

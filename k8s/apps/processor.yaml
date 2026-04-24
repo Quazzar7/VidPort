@@ -5,7 +5,7 @@ metadata:
   namespace: apps
 type: Opaque
 stringData:
-  DB_DSN: "postgresql://admin:CHANGE_ME@postgres.platform.svc.cluster.local:5432/vidport"
+  DB_DSN: "postgresql://admin:vidport_pass@postgres.platform.svc.cluster.local:5432/vidport"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -25,6 +25,7 @@ spec:
       containers:
         - name: processor
           image: ghcr.io/quazzar7/vidport-processor:latest
+          imagePullPolicy: IfNotPresent
           env:
             - name: KAFKA_BOOTSTRAP
               value: kafka.platform.svc.cluster.local:9092
@@ -39,4 +40,4 @@ spec:
               memory: 64Mi
             limits:
               cpu: 200m
-              memory: 128Mi
+              memory: 256Mi

@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafdrop
+  namespace: platform
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafdrop
+  template:
+    metadata:
+      labels:
+        app: kafdrop
+    spec:
+      containers:
+        - name: kafdrop
+          image: obsidiandynamics/kafdrop:latest
+          ports:
+            - containerPort: 9000
+          env:
+            - name: KAFKA_BROKERCONNECT
+              value: kafka.platform.svc.cluster.local:9092
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafdrop
+  namespace: platform
+spec:
+  selector:
+    app: kafdrop
+  ports:
+    - port: 9000
+      targetPort: 9000
+  type: ClusterIP

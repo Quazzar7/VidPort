@@ -65,7 +65,13 @@ services:
       - S3__AccessKey=${MINIO_ROOT_USER:-admin}
       - S3__SecretKey=${MINIO_ROOT_PASSWORD:-password}
       - S3__BucketName=videos
+      - Kafka__BootstrapServers=kafka:9092
+      - JwtOptions__SecretKey=${JWT_SECRET_KEY:-dev_secret_key_min_32_chars_long_xx}
+      - JwtOptions__Issuer=VidPort
+      - JwtOptions__Audience=VidPort
+      - Cors__AllowedOrigins=http://localhost:3000
       - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5000
     depends_on:
       db:
         condition: service_healthy
@@ -102,6 +108,44 @@ services:
       interval: 10s
       timeout: 10s
       retries: 5
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop
+    container_name: vidport_kafdrop
+    restart: "no"
+    ports:
+      - "9002:9000"
+    environment:
+      KAFKA_BROKERCONNECT: "kafka:9092"
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: vidport_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: vidport_grafana
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+    restart: unless-stopped
 
   scraper:
     build:
@@ -163,3 +207,5 @@ volumes:
   postgres_data:
   redis_data:
   minio_data:
+  prometheus_data:
+  grafana_data:

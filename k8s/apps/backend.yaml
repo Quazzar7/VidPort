@@ -6,6 +6,8 @@ metadata:
 data:
   ASPNETCORE_ENVIRONMENT: Production
   ASPNETCORE_URLS: http://+:5000
+  Kafka__BootstrapServers: kafka.platform.svc.cluster.local:9092
+  Cors__AllowedOrigins: "http://vidport.local;http://localhost:3000"
 ---
 apiVersion: v1
 kind: Secret
@@ -14,13 +16,13 @@ metadata:
   namespace: apps
 type: Opaque
 stringData:
-  ConnectionStrings__DefaultConnection: "Host=postgres.platform.svc.cluster.local;Port=5432;Database=vidport;Username=admin;Password=CHANGE_ME"
+  ConnectionStrings__DefaultConnection: "Host=postgres.platform.svc.cluster.local;Port=5432;Database=vidport;Username=admin;Password=vidport_pass"
   Redis__ConnectionString: "redis.platform.svc.cluster.local:6379"
   S3__ServiceUrl: "http://minio.platform.svc.cluster.local:9000"
-  S3__AccessKey: "CHANGE_ME"
-  S3__SecretKey: "CHANGE_ME"
+  S3__AccessKey: "admin"
+  S3__SecretKey: "vidport_pass"
   S3__BucketName: "videos"
-  JwtOptions__SecretKey: "CHANGE_ME_MIN_32_CHARS_LONG_SECRET"
+  JwtOptions__SecretKey: "vidport_local_dev_secret_key_min32chars"
   JwtOptions__Issuer: "VidPort"
   JwtOptions__Audience: "VidPort"
 ---
@@ -38,10 +40,15 @@ spec:
     metadata:
       labels:
         app: backend
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "5000"
+        prometheus.io/path: /metrics
     spec:
       containers:
         - name: backend
           image: ghcr.io/quazzar7/vidport-backend:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5000
           envFrom:
@@ -49,18 +56,26 @@ spec:
                 name: backend-config
             - secretRef:
                 name: backend-secrets
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 5000
-            initialDelaySeconds: 30
-            periodSeconds: 10
           readinessProbe:
             httpGet:
               path: /health
               port: 5000
             initialDelaySeconds: 15
             periodSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
 ---
 apiVersion: v1
 kind: Service
@@ -73,3 +88,4 @@ spec:
   ports:
     - port: 5000
       targetPort: 5000
+  type: ClusterIP

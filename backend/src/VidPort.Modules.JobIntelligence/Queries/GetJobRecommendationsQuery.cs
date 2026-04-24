@@ -23,7 +23,7 @@ public class GetJobRecommendationsQueryHandler : IRequestHandler<GetJobRecommend
                 j.Title,
                 j.Company,
                 j.Location,
-                j.Skills,
+                j.Skills != null ? j.Skills.ToList() : null,
                 j.Source,
                 j.PostedAt))
             .ToListAsync(ct);

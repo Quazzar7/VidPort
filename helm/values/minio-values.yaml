@@ -1,0 +1,24 @@
+mode: standalone
+
+auth:
+  rootUser: "admin"
+  rootPassword: "vidport_pass"
+
+persistence:
+  size: 10Gi
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+service:
+  type: ClusterIP
+  port: 9000
+
+consoleService:
+  type: ClusterIP
+  port: 9001
