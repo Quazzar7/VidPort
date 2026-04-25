@@ -8,6 +8,7 @@ data:
   ASPNETCORE_URLS: http://+:5000
   Kafka__BootstrapServers: kafka.platform.svc.cluster.local:9092
   Cors__AllowedOrigins: "http://vidport.local;http://localhost:3000"
+  AiService__BaseUrl: "http://ai-service.apps.svc.cluster.local:8000"
 ---
 apiVersion: v1
 kind: Secret

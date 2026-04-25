@@ -34,6 +34,7 @@ builder.Services.AddUploadsModule(builder.Configuration);
 builder.Services.AddCommunicationsModule();
 builder.Services.AddJobIntelligenceModule();
 
+builder.Services.AddHttpClient();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

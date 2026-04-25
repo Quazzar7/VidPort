@@ -151,6 +151,15 @@ export const api = {
     match: (profile: UserExpertiseProfile) => request<JobMatchDto[]>('/api/jobs/match', { method: 'POST', body: profile }),
   },
 
+  ai: {
+    analyzeJob: (job: AiJobDetails) =>
+      request<AiJobAnalysis>('/api/ai/analyze-job', { method: 'POST', body: { job } }),
+    coverLetter: (job: AiJobDetails, profile: AiUserProfile) =>
+      request<AiCoverLetter>('/api/ai/cover-letter', { method: 'POST', body: { job, profile } }),
+    interviewPrep: (job: AiJobDetails, profile: AiUserProfile) =>
+      request<AiInterviewPrep>('/api/ai/interview-prep', { method: 'POST', body: { job, profile } }),
+  },
+
   communications: {
     getThreads: () => request<CommunicationThreadDto[]>('/api/communications/threads'),
     
@@ -449,6 +458,49 @@ export interface JobRecommendationDto {
   skills?: string[];
   source: string;
   postedAt: string;
+}
+
+// ── AI types ──────────────────────────────────────────────────────────────────
+export interface AiJobDetails {
+  title: string;
+  company: string;
+  location?: string;
+  skills?: string[];
+  description?: string;
+  source?: string;
+}
+
+export interface AiUserProfile {
+  role: string;
+  experienceLevel: string;
+  skills: string[];
+}
+
+export interface AiJobAnalysis {
+  verdict: string;
+  verdictReason: string;
+  keyRequirements: string[];
+  redFlags: string[];
+  applicationTips: string[];
+  estimatedSalary: string;
+  difficultyLevel: string;
+  whyApply: string;
+}
+
+export interface AiCoverLetter {
+  subject: string;
+  body: string;
+}
+
+export interface AiInterviewQuestion {
+  type: string;
+  question: string;
+  modelAnswer: string;
+  tip: string;
+}
+
+export interface AiInterviewPrep {
+  questions: AiInterviewQuestion[];
 }
 
 export const AVAILABILITY_LABELS: Record<number, string> = {

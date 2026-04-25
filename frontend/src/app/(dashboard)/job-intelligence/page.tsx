@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { api, JobInsightDto, JobTrendDto, JobRecommendationDto } from '@/lib/api';
+import { api, JobInsightDto, JobTrendDto, JobRecommendationDto, AiJobAnalysis } from '@/lib/api';
 
 // Returns a sort priority (lower = shown first). 999 = non-India / unknown.
 function getLocationPriority(location?: string): number {
@@ -74,6 +74,8 @@ export default function JobIntelligencePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [jobSearch, setJobSearch] = useState('');
+  const [analyzing, setAnalyzing] = useState<string | null>(null);
+  const [analysis, setAnalysis] = useState<{ id: string; data: AiJobAnalysis } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -304,10 +306,88 @@ export default function JobIntelligencePage() {
                       <p className="text-[10px] text-gray-600">
                         {new Date(job.postedAt).toLocaleDateString()}
                       </p>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-600 bg-gray-800/80 px-2 py-0.5 rounded">
-                        {job.source}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-600 bg-gray-800/80 px-2 py-0.5 rounded">
+                          {job.source}
+                        </span>
+                        <button
+                          onClick={async () => {
+                            if (analyzing === job.id) { setAnalysis(null); setAnalyzing(null); return; }
+                            setAnalyzing(job.id);
+                            try {
+                              const data = await api.ai.analyzeJob({
+                                title: job.title, company: job.company,
+                                location: job.location ?? undefined,
+                                skills: job.skills ?? [],
+                              });
+                              setAnalysis({ id: job.id, data });
+                            } catch { setAnalysis(null); }
+                            finally { setAnalyzing(null); }
+                          }}
+                          className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 transition-all"
+                        >
+                          {analyzing === job.id ? '⏳ Analyzing…' : analysis?.id === job.id ? '✓ Analyzed' : '✦ Analyze'}
+                        </button>
+                      </div>
                     </div>
+
+                    {/* AI Analysis Panel */}
+                    {analysis?.id === job.id && (
+                      <div className="mt-4 pt-4 border-t border-gray-800 space-y-3 animate-in fade-in duration-300">
+                        {/* Verdict */}
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-full border ${
+                            analysis.data.verdict === 'Strong Apply' ? 'bg-green-500/10 text-green-400 border-green-500/30' :
+                            analysis.data.verdict === 'Apply' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30' :
+                            analysis.data.verdict === 'Consider' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30' :
+                            'bg-red-500/10 text-red-400 border-red-500/30'
+                          }`}>{analysis.data.verdict}</span>
+                          <span className="text-[10px] font-bold text-indigo-400">{analysis.data.difficultyLevel}</span>
+                          <span className="text-[10px] text-gray-400 ml-auto">💰 {analysis.data.estimatedSalary}</span>
+                        </div>
+                        <p className="text-[11px] text-gray-400 italic">{analysis.data.verdictReason}</p>
+
+                        {/* Why Apply */}
+                        <div>
+                          <p className="text-[9px] font-black uppercase tracking-widest text-indigo-400 mb-1">Why Apply</p>
+                          <p className="text-[11px] text-gray-300 leading-relaxed">{analysis.data.whyApply}</p>
+                        </div>
+
+                        {/* Key Requirements */}
+                        <div>
+                          <p className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-1.5">Key Requirements</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {analysis.data.keyRequirements.map((r, i) => (
+                              <span key={i} className="text-[10px] bg-gray-800 text-gray-300 px-2 py-0.5 rounded-full">{r}</span>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Red Flags */}
+                        {analysis.data.redFlags.length > 0 && (
+                          <div>
+                            <p className="text-[9px] font-black uppercase tracking-widest text-red-400 mb-1.5">Red Flags</p>
+                            <ul className="space-y-0.5">
+                              {analysis.data.redFlags.map((f, i) => (
+                                <li key={i} className="text-[11px] text-red-300/80 flex gap-1.5"><span>⚠</span>{f}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {/* Application Tips */}
+                        <div>
+                          <p className="text-[9px] font-black uppercase tracking-widest text-green-400 mb-1.5">Application Tips</p>
+                          <ul className="space-y-0.5">
+                            {analysis.data.applicationTips.map((t, i) => (
+                              <li key={i} className="text-[11px] text-gray-300 flex gap-1.5"><span className="text-green-400">→</span>{t}</li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <button onClick={() => setAnalysis(null)} className="text-[9px] text-gray-600 hover:text-gray-400 transition-colors uppercase tracking-widest font-bold">Close ×</button>
+                      </div>
+                    )}
                   </div>
                 );
               })}

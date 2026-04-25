@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { api, JobMatchDto, UserExpertiseProfile } from '@/lib/api';
-import Link from 'next/link';
+import { api, JobMatchDto, UserExpertiseProfile, AiCoverLetter, AiInterviewPrep } from '@/lib/api';
 
 const ROLES = ['Frontend Developer', 'Backend Developer', 'Full-Stack Developer', 'Mobile Developer', 'DevOps/SRE', 'Data Engineer/Scientist', 'Product Manager', 'QA Automation'];
 const EXPERIENCE_LEVELS = ['Junior (0-2 years)', 'Mid-Level (3-5 years)', 'Senior (5-10 years)', 'Staff/Principal (10+ years)'];
@@ -20,6 +19,11 @@ export default function JobMatcherPage() {
   });
 
   const [skillInput, setSkillInput] = useState('');
+  const [aiModal, setAiModal] = useState<{ type: 'cover-letter' | 'interview-prep'; job: JobMatchDto } | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [coverLetter, setCoverLetter] = useState<AiCoverLetter | null>(null);
+  const [interviewPrep, setInterviewPrep] = useState<AiInterviewPrep | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const nextStep = () => setStep(prev => prev + 1);
   const prevStep = () => setStep(prev => prev - 1);
@@ -200,15 +204,25 @@ export default function JobMatcherPage() {
 
                   <p className="text-gray-400 text-xs font-medium line-clamp-3 leading-relaxed">{job.description}</p>
 
-                  <div className="pt-2 mt-auto">
-                    <a 
-                      href={job.url} 
-                      target="_blank" 
+                  <div className="pt-2 mt-auto space-y-2">
+                    <a
+                      href={job.url}
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="block w-full text-center bg-gray-800 hover:bg-white hover:text-black text-white text-[10px] font-black uppercase tracking-widest py-3 rounded-2xl transition-all shadow-xl"
                     >
                       View Full Posting &rarr;
                     </a>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => { setCoverLetter(null); setInterviewPrep(null); setAiModal({ type: 'cover-letter', job }); }}
+                        className="text-[9px] font-black uppercase tracking-widest py-2 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/20 transition-all"
+                      >✍ Cover Letter</button>
+                      <button
+                        onClick={() => { setCoverLetter(null); setInterviewPrep(null); setAiModal({ type: 'interview-prep', job }); }}
+                        className="text-[9px] font-black uppercase tracking-widest py-2 rounded-xl bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 transition-all"
+                      >🎯 Interview Prep</button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -238,6 +252,108 @@ export default function JobMatcherPage() {
           {renderStep()}
         </div>
       </div>
+
+      {/* AI Modal — Cover Letter & Interview Prep */}
+      {aiModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-gray-950 border border-gray-800 rounded-[32px] w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+            {/* Header */}
+            <div className="p-6 border-b border-gray-800 bg-gray-900/50 flex items-center justify-between flex-shrink-0">
+              <div>
+                <h2 className="text-white font-black uppercase tracking-widest text-sm">
+                  {aiModal.type === 'cover-letter' ? '✍ Cover Letter Generator' : '🎯 Interview Prep'}
+                </h2>
+                <p className="text-gray-500 text-[11px] mt-0.5">{aiModal.job.title} · {aiModal.job.company}</p>
+              </div>
+              <button onClick={() => setAiModal(null)} className="text-gray-500 hover:text-white text-xl">&times;</button>
+            </div>
+
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {!coverLetter && !interviewPrep && !aiLoading && (
+                <div className="text-center py-12 space-y-4">
+                  <p className="text-gray-400 text-sm">
+                    {aiModal.type === 'cover-letter'
+                      ? 'Llama3 will write a tailored cover letter for this role based on your profile.'
+                      : 'Llama3 will generate 5 likely interview questions with model answers for this role.'}
+                  </p>
+                  <button
+                    onClick={async () => {
+                      setAiLoading(true);
+                      const profile = { role: formData.role, experienceLevel: formData.experienceLevel, skills: formData.skills };
+                      const job = { title: aiModal.job.title, company: aiModal.job.company, location: aiModal.job.location ?? undefined, skills: [] };
+                      try {
+                        if (aiModal.type === 'cover-letter') {
+                          const res = await api.ai.coverLetter(job, profile);
+                          setCoverLetter(res);
+                        } else {
+                          const res = await api.ai.interviewPrep(job, profile);
+                          setInterviewPrep(res);
+                        }
+                      } catch { alert('AI service unavailable. Make sure Ollama is running.'); }
+                      finally { setAiLoading(false); }
+                    }}
+                    className="px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase tracking-widest text-xs rounded-2xl transition-all shadow-xl shadow-indigo-900/30"
+                  >
+                    Generate with Llama3 ✦
+                  </button>
+                </div>
+              )}
+
+              {aiLoading && (
+                <div className="flex flex-col items-center justify-center py-16 gap-4">
+                  <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-gray-400 text-sm font-bold">Llama3 is thinking… this may take 30–60 seconds</p>
+                </div>
+              )}
+
+              {/* Cover Letter result */}
+              {coverLetter && (
+                <div className="space-y-4">
+                  <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Subject Line</p>
+                    <p className="text-white text-sm font-bold">{coverLetter.subject}</p>
+                  </div>
+                  <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-3">Cover Letter</p>
+                    <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-line">{coverLetter.body}</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`Subject: ${coverLetter.subject}\n\n${coverLetter.body}`);
+                      setCopied(true); setTimeout(() => setCopied(false), 2000);
+                    }}
+                    className="w-full py-3 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/20 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+                  >{copied ? '✓ Copied to Clipboard' : 'Copy to Clipboard'}</button>
+                </div>
+              )}
+
+              {/* Interview Prep result */}
+              {interviewPrep && (
+                <div className="space-y-4">
+                  {interviewPrep.questions.map((q, i) => (
+                    <div key={i} className="bg-gray-900 border border-gray-800 rounded-2xl p-5 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">{q.type}</span>
+                        <span className="text-[10px] text-gray-500 font-black">Q{i + 1}</span>
+                      </div>
+                      <p className="text-white text-sm font-bold leading-snug">{q.question}</p>
+                      <div className="pt-2 border-t border-gray-800 space-y-2">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-green-400">Model Answer</p>
+                        <p className="text-gray-300 text-xs leading-relaxed">{q.modelAnswer}</p>
+                      </div>
+                      <div className="bg-yellow-500/5 border border-yellow-500/10 rounded-xl px-3 py-2">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-yellow-400 mb-1">Tip</p>
+                        <p className="text-yellow-200/70 text-[11px]">{q.tip}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
